@@ -297,4 +297,18 @@ final class WebsiteTest extends EventsTestCase
         self::assertStringNotContainsString('Hoffest', $this->html('/kurse'), 'Only the events of its space.');
         self::assertStringContainsString('href="/kurse/roestkurs"', $this->html('/'), 'A teaser over all spaces links each event below its page.');
     }
+
+    public function testAnEventMovesToAnotherSpaceWithPublishing(): void
+    {
+        $courses = $this->runner()->run(new CreateSpace(EventStore::TYPE, 'Kurse'))->id;
+        $page = $this->eventsPage($this->start, 'Kurse', space: $courses);
+        $this->runner()->run(new PublishPages([$page]));
+        $id = $this->event(['de' => ['title' => 'Röstkurs']]);
+
+        $this->runner()->run(new UpdateEvent($id, space: $courses));
+        self::assertSame(200, $this->statusOf('/termine/roestkurs'), 'In the draft first (decision 0244).');
+        $this->runner()->run(new PublishEvents([$id]));
+        self::assertSame(['/kurse/roestkurs', 301], $this->redirect('/termine/roestkurs'));
+        self::assertStringContainsString('Röstkurs', $this->html('/kurse'));
+    }
 }

@@ -74,6 +74,14 @@ final readonly class EventData
     }
 
     /**
+     * The same in another space (decision 0244).
+     */
+    public function withSpace(string $space): self
+    {
+        return self::fromArray([...$this->toArray(), 'space' => $space]);
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function toArray(): array

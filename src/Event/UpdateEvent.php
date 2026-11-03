@@ -53,6 +53,8 @@ final readonly class UpdateEvent implements Action
         public ?array $tags = null,
         #[Description('Further fields the views of the theme add, by name; a text one per language, e.g. {"subtitle": {"de": "…"}}, null removes one, the others stay; see object.fields; left out keeps them')]
         public ?array $fields = null,
+        #[Description('The space to move it to; with publishing its address moves below the page of that space and the old one redirects')]
+        public ?string $space = null,
     ) {}
 
     public function handle(EventEditor $editor, EventStore $store): EventDetails
@@ -72,8 +74,8 @@ final readonly class UpdateEvent implements Action
             },
             null === $this->categories ? $current->categories : $editor->categories('frootbox/events/event.update', $this->categories),
             null === $this->translations ? $current->translations : $editor->translations('frootbox/events/event.update', $this->translations, $current->translations),
-            $current->space,
-            null === $this->tags ? $current->tags : $editor->tags('frootbox/events/event.update', $current->space, $this->tags),
+            $this->space ?? $current->space,
+            null === $this->tags ? $current->tags : $editor->tags('frootbox/events/event.update', $this->space ?? $current->space, $this->tags),
             null === $this->fields ? $current->fields : $editor->fields('frootbox/events/event.update', $current->fields, $this->fields),
         );
 
