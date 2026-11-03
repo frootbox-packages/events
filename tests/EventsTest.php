@@ -13,6 +13,9 @@ use Frootbox\Core\Action\InvalidInputException;
 use Frootbox\Core\Category\CreateCategory;
 use Frootbox\Core\Category\DeleteCategory;
 use Frootbox\Core\Category\ListCategories;
+use Frootbox\Core\Extension\Registry;
+use Frootbox\Core\ObjectField\ObjectFields;
+use Frootbox\Core\ObjectField\ObjectFieldSet;
 use Frootbox\Core\Page\PublishPages;
 use Frootbox\Core\Schedule\Scheduler;
 use Frootbox\Core\Search\Search;
@@ -60,6 +63,19 @@ final class EventsTest extends EventsTestCase
         self::assertSame('neue-sorten', $shown->draft?->translations['de']->slug, 'The slug stays when only the title changes.');
         self::assertSame('Drei Bohnen aus Peru.', $shown->draft->translations['de']->teaser, 'What is left out stays.');
         self::assertSame('Neue Sorten', $this->get(EventTranslations::class)->of($details->id)['de']->title, 'Visitors see the published version.');
+    }
+
+    public function testKeepsTheFurtherFieldsOfTheTheme(): void
+    {
+        $this->get(Registry::class)->add(ObjectFieldSet::class, new ObjectFieldSet(EventStore::TYPE, ['soldOut' => ['type' => 'boolean']]));
+        $id = $this->runner()->run(new CreateEvent(['de' => ['title' => 'Verkostung']], new DateTimeImmutable('2026-12-01 18:00'), fields: ['soldOut' => true]))->id;
+        $this->runner()->run(new UpdateEvent($id, ['de' => ['teaser' => 'Mit Röster.']]));
+        self::assertSame(['soldOut' => true], $this->runner()->ask(new ShowEvent($id))->draft?->fields, 'Left out, they stay.');
+
+        $this->runner()->run(new PublishEvents([$id]));
+        self::assertSame([$id => ['soldOut' => true]], $this->get(ObjectFields::class)->of(EventStore::TYPE, [$id]));
+        $this->runner()->run(new UnpublishEvent($id));
+        self::assertSame([$id => []], $this->get(ObjectFields::class)->of(EventStore::TYPE, [$id]));
     }
 
     public function testKeepsTimePlaceAndWhenTheEventIsOver(): void

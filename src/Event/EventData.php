@@ -28,6 +28,7 @@ final readonly class EventData
      * @param list<string>               $categories   Ids of the categories
      * @param array<string, EventText>   $translations By language
      * @param list<string>               $tags         Ids of the tags (decision 0239)
+     * @param array<mixed>               $fields       Further fields of the views by name (decision 0240)
      */
     public function __construct(
         public DateTimeImmutable $start,
@@ -41,6 +42,7 @@ final readonly class EventData
         /** The space of the events it belongs to (decision 0232) */
         public string $space = Space::DEFAULT,
         public array $tags = [],
+        public array $fields = [],
     ) {}
 
     /**
@@ -67,6 +69,7 @@ final readonly class EventData
             $translations,
             \is_string($data['space'] ?? null) && '' !== $data['space'] ? $data['space'] : Space::DEFAULT,
             array_values(array_filter(\is_array($data['tags'] ?? null) ? $data['tags'] : [], \is_string(...))),
+            \is_array($data['fields'] ?? null) ? $data['fields'] : [],
         );
     }
 
@@ -86,6 +89,7 @@ final readonly class EventData
             'translations' => array_map(static fn(EventText $text): array => $text->toArray(), $this->translations),
             'space' => $this->space,
             'tags' => $this->tags,
+            'fields' => $this->fields,
         ];
     }
 

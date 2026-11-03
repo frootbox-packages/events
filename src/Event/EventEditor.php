@@ -13,6 +13,7 @@ use Frootbox\Core\Action\InvalidInputException;
 use Frootbox\Core\Category\ObjectCategories;
 use Frootbox\Core\Language\Languages;
 use Frootbox\Core\Media\MediaEditor;
+use Frootbox\Core\ObjectField\ObjectFields;
 use Frootbox\Core\Page\Slug;
 use Frootbox\Core\Plugin\PluginSpaces;
 use Frootbox\Core\Revision\RevisionStore;
@@ -49,6 +50,7 @@ final readonly class EventEditor
         private EventTranslations $translations,
         private ObjectCategories $categories,
         private ObjectTags $tags,
+        private ObjectFields $fields,
         private MediaEditor $media,
         private RichText $richText,
         private AddressSync $addresses,
@@ -328,6 +330,22 @@ final readonly class EventEditor
     }
 
     /**
+     * The further fields of an action's input after those of the draft
+     * (decision 0240), checked against the views of the theme.
+     *
+     * @param array<mixed> $current
+     * @param array<mixed> $input
+     *
+     * @return array<string, mixed>
+     *
+     * @throws InvalidInputException
+     */
+    public function fields(string $action, array $current, array $input): array
+    {
+        return $this->fields->check($action, EventStore::TYPE, $current, $input);
+    }
+
+    /**
      * The tags of an action's input (decision 0239): ids, keys or labels;
      * presets of the space and new words become tags here, unless only
      * the presets count.
@@ -485,6 +503,7 @@ final readonly class EventEditor
 
         $this->categories->sync(EventStore::TYPE, $id, $data->categories);
         $this->tags->sync(EventStore::TYPE, $id, $data->tags);
+        $this->fields->sync(EventStore::TYPE, $id, $data->fields);
     }
 
     private function removeRows(string $id): void
@@ -495,6 +514,7 @@ final readonly class EventEditor
 
         $this->categories->clear(EventStore::TYPE, $id);
         $this->tags->clear(EventStore::TYPE, $id);
+        $this->fields->clear(EventStore::TYPE, $id);
         $this->events->delete($id);
     }
 

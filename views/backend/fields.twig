@@ -1,4 +1,4 @@
-{#- The fields of an event in one language plus time, place, image, categories and tags (decisions 0220, 0227, 0239). -#}
+{#- The fields of an event in one language plus time, place, image, categories, tags and the further fields of the theme (decisions 0220, 0227, 0239, 0240). -#}
 {% import '@backend/ui.twig' as ui %}
 {% set code = language.code %}
 {% set dir = language.direction.value %}
@@ -18,3 +18,4 @@
 {{ ui.image({label: t('Image'), name: 'image', id: 'event-image', value: image_value, preview: image.preview ?? null, file: image.file ?? null, optional: true, disabled: not editable}) }}
 {% include '@backend/categories/choices.twig' with {type: 'frootbox/events/event', chosen: chosen, disabled: not editable, prefix: 'event'} only %}
 {% include '@backend/tags/choices.twig' with {type: 'frootbox/events/event', space: data ? data.space : (space ?? null), chosen: data ? data.tags : [], disabled: not editable, prefix: 'event'} only %}
+{% include '@backend/fields/object.twig' with {type: 'frootbox/events/event', values: data ? data.fields : {}, language: language, disabled: not editable, prefix: 'event'} only %}

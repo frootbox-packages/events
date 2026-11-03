@@ -48,6 +48,8 @@ final readonly class EventRendering
     {
         return [
             'id' => $event->id,
+            // For object_field() and object_value() (decision 0240).
+            'target' => EventStore::target($event->id),
             'title' => $event->title,
             'teaser' => $event->teaser,
             'venue' => $event->venue,

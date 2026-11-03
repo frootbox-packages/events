@@ -37,10 +37,17 @@ become tags unless `config/tags.yaml` closes the list for
 `frootbox/events/event` or the space. The role "editor" gets `frootbox/events/*` on
 installation.
 
+Further fields (decision 0240): a view of the theme declares them under
+`object: fields:` in its header, e.g. an override of `EventList`, and
+the actions take them as `fields`; `object.fields` with the type
+`frootbox/events/event` lists them. The form in the backend shows them under
+"More fields".
+
 ## In a template
 
 ```twig
 <a href="{{ url('frootbox/events/event:' ~ id) }}">…</a>
+{{ object_field(event, 'subtitle') }}  {# a further field, event as the view gets it #}
 ```
 
 ## Backend
