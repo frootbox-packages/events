@@ -8,23 +8,26 @@ declare(strict_types=1);
 
 namespace Frootbox\Events;
 
-use Frootbox\Core\Url\DescribedSubpages;
+use Frootbox\Core\Plugin\Offer;
+use Frootbox\Core\Plugin\Plugin;
 use Frootbox\Events\Event\Events;
 use Frootbox\Events\Event\EventStore;
 use Frootbox\Events\Event\EventTranslations;
 
 /**
- * Each published event has an address below the first page with the
- * list of events, its slug (decision 0219). The teaser and the image
- * describe it for search engines and sharing (decision 0223).
+ * The events as a plugin (decision 0232): a page that shows a space lists
+ * its events at plugin(), each published event has its address below
+ * that page, its slug. The teaser and the image describe it for search
+ * engines and sharing (decision 0223).
  */
-final readonly class EventPages implements DescribedSubpages
+final readonly class EventPlugin implements Plugin
 {
     public const string LIST_BLOCK = 'frootbox/events/EventList';
 
     public function __construct(
         private EventTranslations $translations,
         private Events $events,
+        private EventStore $store,
     ) {}
 
     public function type(): string
@@ -32,20 +35,50 @@ final readonly class EventPages implements DescribedSubpages
         return EventStore::TYPE;
     }
 
-    public function blocks(): array
+    public function label(): string
     {
-        return [self::LIST_BLOCK];
+        return 'Events';
     }
 
-    public function paths(): iterable
+    public function block(): string
     {
+        return self::LIST_BLOCK;
+    }
+
+    public function details(): Offer
+    {
+        return Offer::Required;
+    }
+
+    public function spaces(): bool
+    {
+        return true;
+    }
+
+    public function paths(string $space): iterable
+    {
+        $ids = [];
+
+        foreach ($this->events->fetch(['where' => ['space' => $space]]) as $event) {
+            $ids[] = $event->id;
+        }
+
+        if ([] === $ids) {
+            return;
+        }
+
         $paths = [];
 
-        foreach ($this->translations->fetch(['order' => 'id']) as $translation) {
+        foreach ($this->translations->fetch(['where' => ['eventId' => $ids], 'order' => 'id']) as $translation) {
             $paths[$translation->eventId][$translation->language] = $translation->slug;
         }
 
         yield from $paths;
+    }
+
+    public function count(string $space): int
+    {
+        return \count(array_filter($this->store->ids(), fn(string $id): bool => $this->store->current($id)->space === $space));
     }
 
     public function title(string $id, string $language): ?string

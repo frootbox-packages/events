@@ -14,6 +14,7 @@ use Frootbox\Core\Action\AsAction;
 use Frootbox\Core\Action\Schema\Description;
 use Frootbox\Core\Action\Schema\Length;
 use Frootbox\Core\Action\Schema\ListOf;
+use Frootbox\Core\Plugin\Space;
 use Frootbox\Database\Ulid;
 
 /**
@@ -46,6 +47,9 @@ final readonly class CreateEvent implements Action
         #[ListOf('string')]
         #[Description('Ids of categories')]
         public array $categories = [],
+        #[Length(1, 64)]
+        #[Description('The space of the events, "default" for the default one; see space.list')]
+        public string $space = Space::DEFAULT,
     ) {}
 
     public function handle(EventEditor $editor): EventDetails
@@ -59,6 +63,7 @@ final readonly class CreateEvent implements Action
             [] === $this->image ? null : $this->image,
             $editor->categories('frootbox/events/event.create', $this->categories),
             $editor->translations('frootbox/events/event.create', $this->translations),
+            $this->space,
         );
 
         return $editor->saveDraft('frootbox/events/event.create', Ulid::generate(), $data);

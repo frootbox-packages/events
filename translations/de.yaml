@@ -1,7 +1,6 @@
 # German texts of the events: labels of the blocks, texts for visitors and the screens (decisions 0161, 0227).
 "Events": "Termine"
 "Next events": "Nächste Termine"
-"The upcoming events from the next one on, page by page and by category, and the past ones on request. Each event gets its own address below the first page with this block; there the block shows the event with its place, a map and a file for the calendar.": "Die kommenden Termine ab dem nächsten, Seite für Seite und nach Kategorie, auf Wunsch auch die vergangenen. Jeder Termin bekommt eine eigene Adresse unter der ersten Seite mit diesem Block; dort zeigt der Block den Termin mit Ort, Karte und einer Datei für den Kalender."
 "The next events, e.g. on the start page, with a link to all of them.": "Die nächsten Termine, z. B. auf der Startseite, mit einem Link auf alle."
 "Events per page": "Termine pro Seite"
 "Images in the list": "Bilder in der Liste"
@@ -72,3 +71,6 @@
 "New category": "Neue Kategorie"
 "The category is created.": "Die Kategorie ist angelegt."
 "Create the category": "Kategorie anlegen"
+"The upcoming events of the space the page shows, from the next one on, page by page and by category, and the past ones on request. Each event gets its own address below the page; there it shows the event with its place, a map and a file for the calendar.": "Die kommenden Termine der Verwaltung, die die Seite zeigt, ab dem nächsten, Seite für Seite und nach Kategorie, auf Wunsch auch die vergangenen. Jeder Termin bekommt eine eigene Adresse unter der Seite; dort steht der Termin mit Ort, Karte und einer Datei für den Kalender."
+"There is no such space of the events.": "Diese Verwaltung gibt es in den Terminen nicht."
+Space: Verwaltung

@@ -213,7 +213,7 @@ final class EventsTest extends EventsTestCase
 
     public function testEventsAreFoundAndEditorsMayChangeThem(): void
     {
-        $page = $this->page(null, 'Start', [['block' => 'frootbox/events/EventList']]);
+        $page = $this->eventsPage(null, 'Start');
         $this->runner()->run(new PublishPages([$page]));
         $id = $this->event(['de' => ['title' => 'Neue Sorten', 'text' => self::text('Geröstet in Hamburg')]]);
 

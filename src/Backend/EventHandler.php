@@ -44,9 +44,12 @@ final readonly class EventHandler implements RequestHandlerInterface
         $categories = $this->categories();
 
         if (!\is_string($id)) {
+            $space = $request->getQueryParams()['space'] ?? null;
+
             return $this->view->render($request, '@frootbox/events/backend/event-new.twig', [
                 'language' => $this->languages->default(),
                 'categories' => $categories,
+                'space' => \is_string($space) && '' !== $space ? $space : null,
             ]);
         }
 

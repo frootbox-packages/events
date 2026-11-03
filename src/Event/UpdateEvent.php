@@ -65,6 +65,7 @@ final readonly class UpdateEvent implements Action
             },
             null === $this->categories ? $current->categories : $editor->categories('frootbox/events/event.update', $this->categories),
             null === $this->translations ? $current->translations : $editor->translations('frootbox/events/event.update', $this->translations, $current->translations),
+            $current->space,
         );
 
         return $editor->saveDraft('frootbox/events/event.update', $this->id, $data);

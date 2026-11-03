@@ -4,14 +4,15 @@ Events for the Frootbox CMS: dates with time, place, drafts, versions and
 planned publishing, categories, a calendar file for each event and two
 blocks for any theme.
 
-- **Events** (`frootbox/events/EventList`) lists the upcoming events from
-  the next one on, page by page, filtered by category (`?category=`), and
-  the past ones with `?past=1`. Each published event gets an address
-  below the first page with this block, e.g. `/events/roasting-course`;
-  there the block shows the event with its place, a map after consent,
+- **Events** (`frootbox/events/EventList`) is the view of the plugin
+  (decision 0232): a page that shows a space of the events lists the
+  upcoming ones at `plugin()` from the next one on, page by page,
+  filtered by category (`?category=`), and the past ones with `?past=1`.
+  Each published event gets an address below that page, e.g.
+  `/events/roasting-course`; there the view shows the event with its place, a map after consent,
   structured data for search engines and a link to the calendar file.
-- **Next events** (`frootbox/events/EventTeaser`) shows the next few with
-  a link to the list.
+- **Next events** (`frootbox/events/EventTeaser`) shows the next few of
+  all spaces or of one, with a link to the list.
 
 An event is upcoming until it is over: until its end, else its start, or
 until the end of its last day when it lasts all day long. When one is

@@ -14,6 +14,7 @@ use Frootbox\Core\Cache\PageCache;
 use Frootbox\Core\Http\Exception\HttpException;
 use Frootbox\Core\Page\PublishPages;
 use Frootbox\Core\Page\UpdatePage;
+use Frootbox\Core\Plugin\CreateSpace;
 use Frootbox\Core\ProjectPaths;
 use Frootbox\Core\Schedule\ScheduleRan;
 use Frootbox\Events\Blocks\EventList;
@@ -23,16 +24,17 @@ use Frootbox\Events\Calendar\CalendarHandler;
 use Frootbox\Events\Category\CreateCategory;
 use Frootbox\Events\Event\EndedEvents;
 use Frootbox\Events\Event\EventRendering;
+use Frootbox\Events\Event\EventStore;
 use Frootbox\Events\Event\PublishEvents;
 use Frootbox\Events\Event\UnpublishEvent;
 use Frootbox\Events\Event\UpdateEvent;
-use Frootbox\Events\EventPages;
+use Frootbox\Events\EventPlugin;
 use Nyholm\Psr7\ServerRequest;
 use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(EventList::class)]
 #[CoversClass(EventTeaser::class)]
-#[CoversClass(EventPages::class)]
+#[CoversClass(EventPlugin::class)]
 #[CoversClass(EventRendering::class)]
 #[CoversClass(Calendar::class)]
 #[CoversClass(EndedEvents::class)]
@@ -47,7 +49,7 @@ final class WebsiteTest extends EventsTestCase
         parent::setUp();
 
         $this->start = $this->page(null, 'Start', [['block' => 'frootbox/events/EventTeaser', 'options' => ['count' => 2]]]);
-        $this->events = $this->page($this->start, 'Termine', [['block' => 'frootbox/events/EventList', 'options' => ['perPage' => 2]]]);
+        $this->events = $this->eventsPage($this->start, 'Termine', ['perPage' => 2]);
         $this->runner()->run(new PublishPages([$this->start, $this->events]));
     }
 
@@ -225,5 +227,19 @@ final class WebsiteTest extends EventsTestCase
     private function calendar(string $id, string $language): \Psr\Http\Message\ResponseInterface
     {
         return $this->get(CalendarHandler::class)->handle(new ServerRequest('GET', 'https://example.org/_events/calendar/' . $id . '/' . $language . '.ics')->withAttribute('id', $id)->withAttribute('language', $language));
+    }
+
+    public function testASpaceHasItsEventsBelowItsOwnPage(): void
+    {
+        $courses = $this->runner()->run(new CreateSpace(EventStore::TYPE, 'Kurse'))->id;
+        $page = $this->eventsPage($this->start, 'Kurse', space: $courses);
+        $this->runner()->run(new PublishPages([$page]));
+        $this->event(['de' => ['title' => 'Röstkurs']], space: $courses);
+        $this->event(['de' => ['title' => 'Hoffest']]);
+
+        self::assertSame(200, $this->statusOf('/kurse/roestkurs'));
+        self::assertSame(404, $this->statusOf('/termine/roestkurs'), 'Not below the page of another space.');
+        self::assertStringNotContainsString('Hoffest', $this->html('/kurse'), 'Only the events of its space.');
+        self::assertStringContainsString('href="/kurse/roestkurs"', $this->html('/'), 'A teaser over all spaces links each event below its page.');
     }
 }

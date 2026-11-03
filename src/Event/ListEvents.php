@@ -31,6 +31,8 @@ final readonly class ListEvents implements Query
         public int $page = 1,
         #[Range(min: 1, max: 200)]
         public int $perPage = 50,
+        #[Description('Only the events of this space; left out for all')]
+        public ?string $space = null,
     ) {}
 
     public function handle(EventStore $store, Languages $languages): EventList
@@ -42,6 +44,10 @@ final readonly class ListEvents implements Query
         foreach ($store->ids() as $id) {
             $details = $store->details($id);
             $data = $details->current();
+
+            if (null !== $this->space && $data->space !== $this->space) {
+                continue;
+            }
             $text = $data->translations[$language] ?? ($data->translations === [] ? null : array_values($data->translations)[0]);
             $title = $text->title ?? '';
 

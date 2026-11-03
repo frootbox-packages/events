@@ -10,6 +10,7 @@ namespace Frootbox\Events\Blocks;
 
 use Frootbox\Core\Component\BlockContext;
 use Frootbox\Core\Component\BlockController;
+use Frootbox\Core\Plugin\Space;
 use Frootbox\Core\Url\Urls;
 use Frootbox\Events\Category\Categories;
 use Frootbox\Events\Event\EventRendering;
@@ -19,8 +20,9 @@ use Frootbox\Events\Event\PublishedEvents;
 
 /**
  * The upcoming events from the next on, page by page and by category, or
- * the past ones. Below the first page with this block each event has its
- * address, there the block shows the event instead (decision 0227).
+ * the past ones, of the space the page shows: the view of the events at
+ * plugin() (decision 0232). Below the page each event has its address,
+ * there the view shows the event.
  */
 final readonly class EventList implements BlockController
 {
@@ -36,6 +38,7 @@ final readonly class EventList implements BlockController
         $language = $context->contentLanguage;
         $base = null === $context->target ? '' : $this->urls->href($context->target, $context->language) ?? '';
         $subpage = $context->subpage;
+        $spaces = [$context->plugin->space ?? Space::DEFAULT];
 
         if (null !== $subpage && EventStore::TYPE === $subpage->target->type) {
             $event = $this->events->find($subpage->target->id, $language);
@@ -49,7 +52,7 @@ final readonly class EventList implements BlockController
         $category = null === $category ? null : $this->categories->bySlug($language, $category);
         $past = '1' === $context->query('past') && false !== ($context->options['past'] ?? true);
         $perPage = max(1, min(50, is_numeric($context->options['perPage'] ?? null) ? (int) $context->options['perPage'] : 10));
-        $total = $this->events->count($language, $category?->id, $past);
+        $total = $this->events->count($language, $category?->id, $past, spaces: $spaces);
         $pages = max(1, (int) ceil($total / $perPage));
         $page = min($pages, max(1, (int) ($context->query('page') ?? 1)));
         $given = static fn(?string $value): bool => null !== $value;
@@ -72,7 +75,7 @@ final readonly class EventList implements BlockController
         $categoryOnly = array_filter(['category' => $filter['category'] ?? null], $given);
 
         return [
-            'events' => array_map(fn(EventView $event): array => $this->withLinks($this->rendering->teaser($event, $context->language, $images), $base), $this->events->list($language, $category?->id, $past, $perPage, ($page - 1) * $perPage)),
+            'events' => array_map(fn(EventView $event): array => $this->withLinks($this->rendering->teaser($event, $context->language, $images), $base), $this->events->list($language, $category?->id, $past, $perPage, ($page - 1) * $perPage, spaces: $spaces)),
             'filters' => [] === $filters ? [] : [['title' => null, 'href' => $link(array_filter(['past' => $filter['past'] ?? null], $given)), 'current' => null === $category], ...$filters],
             'filtered' => null !== $category,
             'past' => $past,

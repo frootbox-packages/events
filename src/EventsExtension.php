@@ -36,8 +36,8 @@ use Frootbox\Events\Event\UnpublishEvent;
 use Frootbox\Events\Event\UpdateEvent;
 
 /**
- * Events as a plugin (decisions 0219, 0227): events with drafts, their
- * addresses below the page with the list, the scheduler, the search, a
+ * Events as a plugin (decisions 0219, 0227, 0232): events with drafts in
+ * spaces, their addresses below the page that shows the space, the scheduler, the search, a
  * calendar file for each event and a fresh page cache once one is over.
  * The screens come only with the backend.
  */
@@ -58,8 +58,9 @@ final class EventsExtension implements Extension
         $registry->action(UpdateCategory::class);
         $registry->action(DeleteCategory::class);
         $registry->query(ListCategories::class);
+        $registry->query(SpaceChoices::class);
 
-        $registry->subpages(EventPages::class);
+        $registry->plugin(EventPlugin::class);
         $registry->scheduled(EventSchedule::class);
         $registry->searchSource(EventSource::class);
 

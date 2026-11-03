@@ -15,12 +15,16 @@ use Frootbox\Core\Extension\Extensions;
 use Frootbox\Core\Http\Exception\HttpException;
 use Frootbox\Core\Page\CreatePage;
 use Frootbox\Core\Page\PageHandler;
+use Frootbox\Core\Page\UpdateBlock;
+use Frootbox\Core\Plugin\AssignPlugin;
+use Frootbox\Core\Plugin\Space;
 use Frootbox\Core\Tests\Support\FixtureSite;
 use Frootbox\Core\Tests\Support\NotesTestCase;
 use Frootbox\Events\Category\Categories;
 use Frootbox\Events\Event\CreateEvent;
 use Frootbox\Events\Event\EventCategories;
 use Frootbox\Events\Event\Events;
+use Frootbox\Events\Event\EventStore;
 use Frootbox\Events\Event\EventTranslations;
 use Frootbox\Events\Event\PublishEvents;
 use Nyholm\Psr7\ServerRequest;
@@ -68,14 +72,38 @@ abstract class EventsTestCase extends NotesTestCase
     }
 
     /**
+     * A page that shows the events (decision 0232), with the options of
+     * the view of the plugin.
+     *
+     * @param array<string, mixed> $options
+     */
+    protected function eventsPage(?string $parentId, string $title, array $options = [], string $space = Space::DEFAULT): string
+    {
+        $id = $this->page($parentId, $title);
+        $details = $this->runner()->run(new AssignPlugin($id, EventStore::TYPE, $space));
+
+        if ([] !== $options) {
+            foreach ($details->draft->translations ?? [] as $language => $translation) {
+                $view = $translation->content['plugin'] ?? null;
+
+                if (\is_array($view) && \is_string($view['id'] ?? null)) {
+                    $this->runner()->run(new UpdateBlock($id, $language, $view['id'], options: $options));
+                }
+            }
+        }
+
+        return $id;
+    }
+
+    /**
      * A published event, by default in three days.
      *
      * @param array<string, mixed> $translations
      * @param list<string>         $categories
      */
-    protected function event(array $translations, string $start = '+3 days 18:00', ?string $end = null, bool $allDay = false, array $categories = [], string $address = '', string $coordinates = '', bool $publish = true): string
+    protected function event(array $translations, string $start = '+3 days 18:00', ?string $end = null, bool $allDay = false, array $categories = [], string $address = '', string $coordinates = '', bool $publish = true, string $space = Space::DEFAULT): string
     {
-        $details = $this->runner()->run(new CreateEvent($translations, new DateTimeImmutable($start), null === $end ? null : new DateTimeImmutable($end), $allDay, $address, $coordinates, categories: $categories));
+        $details = $this->runner()->run(new CreateEvent($translations, new DateTimeImmutable($start), null === $end ? null : new DateTimeImmutable($end), $allDay, $address, $coordinates, categories: $categories, space: $space));
 
         if ($publish) {
             $this->runner()->run(new PublishEvents([$details->id]));

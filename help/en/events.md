@@ -10,10 +10,11 @@ a text, an image and categories.
 
 ## Show the events on the website
 
-Add the block **Events** to a page, e.g. one called "Events". It lists
-the upcoming events from the next one on, page by page, and links to
-the past ones. Each event gets its own address below that page, e.g.
-`/events/roasting-course`, and the block shows the event there: with
+A page shows the events when an admin chooses it in its settings under
+**This page shows**, e.g. on a page called "Events". The upcoming events
+appear there from the next one on, page by page, with a link to the past
+ones. Each event gets its own address below that page, e.g.
+`/events/roasting-course`, and the event shows there: with
 its time and place, a map once the visitor agrees, and a link to put it
 into a calendar.
 
@@ -21,11 +22,11 @@ An event counts as upcoming until it is over: until its end, else its
 beginning. Events all day long last until the end of their last day.
 The list moves on by itself.
 
-If several pages have the block, the first one in the sitemap holds the
-addresses; the others link to it.
+For separate events, such as courses and parties, an admin adds another
+**space** with its own page there.
 
 The block **Next events** shows the next few, e.g. on the start page,
-with a link to all of them.
+from all spaces or from one, with a link to all of them.
 
 ## Create an event
 

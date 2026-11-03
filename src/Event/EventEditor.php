@@ -13,6 +13,7 @@ use Frootbox\Core\Action\InvalidInputException;
 use Frootbox\Core\Language\Languages;
 use Frootbox\Core\Media\MediaEditor;
 use Frootbox\Core\Page\Slug;
+use Frootbox\Core\Plugin\PluginSpaces;
 use Frootbox\Core\Revision\RevisionStore;
 use Frootbox\Core\Support\Message;
 use Frootbox\Core\Url\AddressSync;
@@ -51,6 +52,7 @@ final readonly class EventEditor
         private RichText $richText,
         private AddressSync $addresses,
         private Languages $languages,
+        private PluginSpaces $spaces,
     ) {}
 
     /**
@@ -402,6 +404,10 @@ final readonly class EventEditor
             $errors['/coordinates'] = 'must be latitude and longitude, e.g. "53.5444, 9.9663".';
         }
 
+        if (!$this->spaces->exists(EventStore::TYPE, $data->space)) {
+            $errors['/space'] = 'There is no such space of the events.';
+        }
+
         if (null !== $data->image && (null === $data->media() || 1 !== preg_match(self::MEDIA_PATTERN, $data->media()))) {
             $errors['/image'] = 'must be an image as {"media": "<id>", "alt": "…"}.';
         }
@@ -446,6 +452,7 @@ final readonly class EventEditor
             'address' => $data->address,
             'coordinates' => $data->coordinates,
             'image' => $data->image,
+            'space' => $data->space,
         ];
 
         if (null === $this->events->fetchById($id)) {

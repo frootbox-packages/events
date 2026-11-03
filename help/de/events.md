@@ -8,22 +8,23 @@ Kategorien.
 
 ## Termine auf der Website zeigen
 
-Setz den Block **Termine** auf eine Seite, z. B. eine Seite „Termine“.
-Er zeigt die kommenden Termine ab dem nächsten, Seite für Seite, und
-verlinkt die vergangenen. Jeder Termin bekommt eine eigene Adresse
-unter dieser Seite, z. B. `/termine/roestkurs`, und der Block zeigt dort
-den Termin: mit Zeit und Ort, einer Karte, sobald der Besucher
+Eine Seite zeigt die Termine, wenn ein Admin es in ihren Einstellungen
+unter **Diese Seite zeigt** wählt, z. B. bei einer Seite „Termine“. Dort
+stehen die kommenden Termine ab dem nächsten, Seite für Seite, mit einem
+Link auf die vergangenen. Jeder Termin bekommt eine eigene Adresse unter
+dieser Seite, z. B. `/termine/roestkurs`, und dort steht der Termin: mit Zeit und Ort, einer Karte, sobald der Besucher
 zustimmt, und einem Link, um ihn in den Kalender einzutragen.
 
 Ein Termin gilt als kommend, bis er vorbei ist: bis zu seinem Ende,
 sonst bis zu seinem Beginn. Ganztägige Termine laufen bis zum Ende
 ihres letzten Tags. Die Liste rückt von selbst weiter.
 
-Haben mehrere Seiten den Block, gehören die Adressen zur ersten in der
-Sitemap; die anderen verlinken dorthin.
+Für getrennte Termine, etwa Kurse und Feste, legt ein Admin dort eine
+weitere **Verwaltung** mit eigener Seite an.
 
 Der Block **Nächste Termine** zeigt die nächsten paar, z. B. auf der
-Startseite, mit einem Link auf alle.
+Startseite, aus allen Verwaltungen oder aus einer, mit einem Link auf
+alle.
 
 ## Einen Termin anlegen
 

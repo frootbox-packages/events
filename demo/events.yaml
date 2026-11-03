@@ -32,8 +32,7 @@
             title: Termine
             intro: Kurse, Verkostungen und Feste in der Rösterei und im Café.
           areas:
-            main:
-              - block: frootbox/events/EventList
+            main: []
       en:
         title: Events
         content:
@@ -41,9 +40,9 @@
             title: Events
             intro: Courses, tastings and parties at the roastery and the café.
           areas:
-            main:
-              - block: frootbox/events/EventList
+            main: []
   as: page
+- plugin.assign: { id: '${page.id}', type: frootbox/events/event }
 - page.publish: { ids: ['${page.id}'] }
 
 - frootbox/events/event.create:

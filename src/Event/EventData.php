@@ -12,6 +12,7 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use DateTimeZone;
 use Exception;
+use Frootbox\Core\Plugin\Space;
 
 /**
  * An event as its draft or published version holds it.
@@ -36,6 +37,8 @@ final readonly class EventData
         public ?array $image = null,
         public array $categories = [],
         public array $translations = [],
+        /** The space of the events it belongs to (decision 0232) */
+        public string $space = Space::DEFAULT,
     ) {}
 
     /**
@@ -60,6 +63,7 @@ final readonly class EventData
             \is_array($data['image'] ?? null) ? $data['image'] : null,
             array_values(array_filter(\is_array($data['categories'] ?? null) ? $data['categories'] : [], \is_string(...))),
             $translations,
+            \is_string($data['space'] ?? null) && '' !== $data['space'] ? $data['space'] : Space::DEFAULT,
         );
     }
 
@@ -77,6 +81,7 @@ final readonly class EventData
             'image' => $this->image,
             'categories' => $this->categories,
             'translations' => array_map(static fn(EventText $text): array => $text->toArray(), $this->translations),
+            'space' => $this->space,
         ];
     }
 

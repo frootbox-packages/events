@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace Frootbox\Events\Event;
 
 use DateTimeImmutable;
+use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Frootbox\Database\Values;
@@ -19,6 +20,7 @@ use Frootbox\Events\Category\Category;
  * The published events for visitors (decision 0227): upcoming ones from
  * the next on, or past ones from the latest back, by language and
  * category, read from the tables. An event is upcoming until it is over.
+ * With spaces only the events of these spaces (decision 0232), null for all.
  */
 final readonly class PublishedEvents
 {
@@ -31,11 +33,13 @@ final readonly class PublishedEvents
     ) {}
 
     /**
+     * @param list<string>|null $spaces
+     *
      * @return list<EventView>
      */
-    public function list(string $language, ?string $category = null, bool $past = false, int $limit = 10, int $offset = 0, ?DateTimeImmutable $now = null): array
+    public function list(string $language, ?string $category = null, bool $past = false, int $limit = 10, int $offset = 0, ?DateTimeImmutable $now = null, ?array $spaces = null): array
     {
-        $query = $this->query($language, $category, $past, $now)
+        $query = $this->query($language, $category, $past, $now, $spaces)
             ->select('e.id')
             ->orderBy('e.starts_at', $past ? 'DESC' : 'ASC')
             ->addOrderBy('e.id', $past ? 'DESC' : 'ASC')
@@ -47,9 +51,12 @@ final readonly class PublishedEvents
         return $this->views($ids, $language);
     }
 
-    public function count(string $language, ?string $category = null, bool $past = false, ?DateTimeImmutable $now = null): int
+    /**
+     * @param list<string>|null $spaces
+     */
+    public function count(string $language, ?string $category = null, bool $past = false, ?DateTimeImmutable $now = null, ?array $spaces = null): int
     {
-        $count = $this->query($language, $category, $past, $now)->select('COUNT(*)')->executeQuery()->fetchOne();
+        $count = $this->query($language, $category, $past, $now, $spaces)->select('COUNT(*)')->executeQuery()->fetchOne();
 
         return is_numeric($count) ? (int) $count : 0;
     }
@@ -79,7 +86,10 @@ final readonly class PublishedEvents
         return \is_string($found);
     }
 
-    private function query(string $language, ?string $category, bool $past, ?DateTimeImmutable $now): QueryBuilder
+    /**
+     * @param list<string>|null $spaces
+     */
+    private function query(string $language, ?string $category, bool $past, ?DateTimeImmutable $now, ?array $spaces): QueryBuilder
     {
         $query = $this->connection->createQueryBuilder()
             ->from(Events::TABLE, 'e')
@@ -87,6 +97,11 @@ final readonly class PublishedEvents
             ->andWhere($past ? 'e.lasts_until < :now' : 'e.lasts_until >= :now')
             ->setParameter('language', $language)
             ->setParameter('now', Values::toDatabase($now ?? new DateTimeImmutable()));
+
+        if (null !== $spaces) {
+            $query->andWhere($query->expr()->in('e.space', ':spaces'))
+                ->setParameter('spaces', [] === $spaces ? [''] : $spaces, ArrayParameterType::STRING);
+        }
 
         if (null !== $category) {
             $query->innerJoin('e', EventCategories::TABLE, 'c', 'c.event_id = e.id AND c.category_id = :category')

@@ -31,5 +31,7 @@ final readonly class Event extends Entity
         public ?array $image,
         public DateTimeImmutable $createdAt,
         public ?DateTimeImmutable $updatedAt,
+        /** The space of the events (decision 0232) */
+        public string $space = 'default',
     ) {}
 }
