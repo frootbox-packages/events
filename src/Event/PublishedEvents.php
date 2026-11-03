@@ -12,9 +12,9 @@ use DateTimeImmutable;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
+use Frootbox\Core\Category\CategoryLinks;
+use Frootbox\Core\Category\ObjectCategories;
 use Frootbox\Database\Values;
-use Frootbox\Events\Category\Categories;
-use Frootbox\Events\Category\Category;
 
 /**
  * The published events for visitors (decision 0227): upcoming ones from
@@ -28,18 +28,18 @@ final readonly class PublishedEvents
         private Connection $connection,
         private Events $events,
         private EventTranslations $translations,
-        private EventCategories $eventCategories,
-        private Categories $categories,
+        private ObjectCategories $categories,
     ) {}
 
     /**
+     * @param list<string>|null $categories A category and all below it, e.g. (decision 0233)
      * @param list<string>|null $spaces
      *
      * @return list<EventView>
      */
-    public function list(string $language, ?string $category = null, bool $past = false, int $limit = 10, int $offset = 0, ?DateTimeImmutable $now = null, ?array $spaces = null): array
+    public function list(string $language, ?array $categories = null, bool $past = false, int $limit = 10, int $offset = 0, ?DateTimeImmutable $now = null, ?array $spaces = null): array
     {
-        $query = $this->query($language, $category, $past, $now, $spaces)
+        $query = $this->query($language, $categories, $past, $now, $spaces)
             ->select('e.id')
             ->orderBy('e.starts_at', $past ? 'DESC' : 'ASC')
             ->addOrderBy('e.id', $past ? 'DESC' : 'ASC')
@@ -52,11 +52,12 @@ final readonly class PublishedEvents
     }
 
     /**
+     * @param list<string>|null $categories
      * @param list<string>|null $spaces
      */
-    public function count(string $language, ?string $category = null, bool $past = false, ?DateTimeImmutable $now = null, ?array $spaces = null): int
+    public function count(string $language, ?array $categories = null, bool $past = false, ?DateTimeImmutable $now = null, ?array $spaces = null): int
     {
-        $count = $this->query($language, $category, $past, $now, $spaces)->select('COUNT(*)')->executeQuery()->fetchOne();
+        $count = $this->query($language, $categories, $past, $now, $spaces)->select('COUNT(*)')->executeQuery()->fetchOne();
 
         return is_numeric($count) ? (int) $count : 0;
     }
@@ -87,9 +88,10 @@ final readonly class PublishedEvents
     }
 
     /**
+     * @param list<string>|null $categories
      * @param list<string>|null $spaces
      */
-    private function query(string $language, ?string $category, bool $past, ?DateTimeImmutable $now, ?array $spaces): QueryBuilder
+    private function query(string $language, ?array $categories, bool $past, ?DateTimeImmutable $now, ?array $spaces): QueryBuilder
     {
         $query = $this->connection->createQueryBuilder()
             ->from(Events::TABLE, 'e')
@@ -103,9 +105,15 @@ final readonly class PublishedEvents
                 ->setParameter('spaces', [] === $spaces ? [''] : $spaces, ArrayParameterType::STRING);
         }
 
-        if (null !== $category) {
-            $query->innerJoin('e', EventCategories::TABLE, 'c', 'c.event_id = e.id AND c.category_id = :category')
-                ->setParameter('category', $category);
+        if (null !== $categories) {
+            $linked = $this->connection->createQueryBuilder()
+                ->select('l.target_id')
+                ->from(CategoryLinks::TABLE, 'l')
+                ->where('l.target_type = :type')
+                ->andWhere($query->expr()->in('l.category_id', ':categories'));
+            $query->andWhere($query->expr()->in('e.id', $linked->getSQL()))
+                ->setParameter('type', EventStore::TYPE)
+                ->setParameter('categories', [] === $categories ? [''] : $categories, ArrayParameterType::STRING);
         }
 
         return $query;
@@ -134,19 +142,7 @@ final readonly class PublishedEvents
             $texts[$translation->eventId] = $translation;
         }
 
-        $categories = [];
-
-        foreach ($this->categories->all() as $category) {
-            $categories[$category->id] = $category;
-        }
-
-        $assigned = [];
-
-        foreach ($this->eventCategories->fetch(['where' => ['eventId' => $ids], 'order' => 'id']) as $row) {
-            if (isset($categories[$row->categoryId])) {
-                $assigned[$row->eventId][] = $categories[$row->categoryId];
-            }
-        }
+        $assigned = $this->categories->of(EventStore::TYPE, $ids);
 
         $views = [];
 
@@ -158,21 +154,9 @@ final readonly class PublishedEvents
                 continue;
             }
 
-            $views[] = new EventView($id, $language, $event->startsAt, $event->endsAt, $event->allDay, $text->title, $text->slug, $text->teaser, $text->venue, $event->address, $event->coordinates, $text->text, $event->image, self::sorted($assigned[$id] ?? []));
+            $views[] = new EventView($id, $language, $event->startsAt, $event->endsAt, $event->allDay, $text->title, $text->slug, $text->teaser, $text->venue, $event->address, $event->coordinates, $text->text, $event->image, $assigned[$id] ?? []);
         }
 
         return $views;
-    }
-
-    /**
-     * @param list<Category> $categories
-     *
-     * @return list<Category>
-     */
-    private static function sorted(array $categories): array
-    {
-        usort($categories, static fn(Category $a, Category $b): int => [$a->position, $a->id] <=> [$b->position, $b->id]);
-
-        return $categories;
     }
 }

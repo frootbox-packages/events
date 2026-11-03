@@ -10,15 +10,14 @@ namespace Frootbox\Events\Tests;
 
 use DateTimeImmutable;
 use Frootbox\Core\Action\InvalidInputException;
+use Frootbox\Core\Category\CreateCategory;
+use Frootbox\Core\Category\DeleteCategory;
+use Frootbox\Core\Category\ListCategories;
 use Frootbox\Core\Page\PublishPages;
 use Frootbox\Core\Schedule\Scheduler;
 use Frootbox\Core\Search\Search;
 use Frootbox\Core\Url\Urls;
 use Frootbox\Core\User\Roles;
-use Frootbox\Events\Category\Categories;
-use Frootbox\Events\Category\CategoryEditor;
-use Frootbox\Events\Category\CreateCategory;
-use Frootbox\Events\Category\DeleteCategory;
 use Frootbox\Events\Event\CreateEvent;
 use Frootbox\Events\Event\DeleteEvent;
 use Frootbox\Events\Event\DiscardEvent;
@@ -40,7 +39,6 @@ use PHPUnit\Framework\Attributes\CoversClass;
 #[CoversClass(EventSource::class)]
 #[CoversClass(EventEditor::class)]
 #[CoversClass(EventStore::class)]
-#[CoversClass(CategoryEditor::class)]
 final class EventsTest extends EventsTestCase
 {
     public function testCreatesADraftAndPublishesIt(): void
@@ -174,15 +172,8 @@ final class EventsTest extends EventsTestCase
 
     public function testCategoriesAreCheckedAndDeletedCategoriesDropOut(): void
     {
-        $coffee = $this->runner()->run(new CreateCategory(['de' => ['title' => 'Kaffee']]));
+        $coffee = $this->runner()->run(new CreateCategory(EventStore::CATEGORIES, ['de' => ['title' => 'Kaffee']]));
         self::assertSame('kaffee', $coffee->slug('de'));
-
-        try {
-            $this->runner()->run(new CreateCategory(['de' => ['title' => 'Kaffee']]));
-            self::fail('Two categories cannot share a slug.');
-        } catch (InvalidInputException $error) {
-            self::assertArrayHasKey('/translations/de/slug', $error->errors);
-        }
 
         try {
             $this->create(['de' => ['title' => 'Neue Sorten']], categories: ['01JNOCATEGORY0000000000000']);
@@ -194,7 +185,7 @@ final class EventsTest extends EventsTestCase
         $id = $this->event(['de' => ['title' => 'Neue Sorten']], categories: [$coffee->id]);
         $this->runner()->run(new DeleteCategory($coffee->id));
 
-        self::assertSame([], $this->get(Categories::class)->all());
+        self::assertSame([], $this->runner()->ask(new ListCategories(EventStore::CATEGORIES)));
         $this->runner()->run(new UpdateEvent($id, ['de' => ['teaser' => 'Neu']]));
         $published = $this->runner()->run(new PublishEvents([$id]));
         self::assertCount(1, $published, 'A deleted category does not keep the event from being published.');

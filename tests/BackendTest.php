@@ -13,12 +13,8 @@ use Frootbox\Core\Action\Context;
 use Frootbox\Core\Extension\ExtensionPackage;
 use Frootbox\Core\Extension\Extensions;
 use Frootbox\Core\User\CreateRole;
-use Frootbox\Events\Backend\CategoriesHandler;
 use Frootbox\Events\Backend\EventHandler;
 use Frootbox\Events\Backend\EventsHandler;
-use Frootbox\Events\Category\Categories;
-use Frootbox\Events\Category\CategoryEditor;
-use Frootbox\Events\Event\EventCategories;
 use Frootbox\Events\Event\Events;
 use Frootbox\Events\Event\EventTranslations;
 use Frootbox\Events\EventsExtension;
@@ -26,14 +22,12 @@ use PHPUnit\Framework\Attributes\CoversClass;
 
 #[CoversClass(EventsHandler::class)]
 #[CoversClass(EventHandler::class)]
-#[CoversClass(CategoriesHandler::class)]
-#[CoversClass(CategoryEditor::class)]
 #[CoversClass(EventsExtension::class)]
 final class BackendTest extends BackendTestCase
 {
     protected function tables(): array
     {
-        return [EventCategories::TABLE, EventTranslations::TABLE, Events::TABLE, Categories::TABLE];
+        return [EventTranslations::TABLE, Events::TABLE, 'frootbox_events_event_categories', 'frootbox_events_categories'];
     }
 
     protected function extensions(): Extensions
@@ -67,7 +61,7 @@ final class BackendTest extends BackendTestCase
         self::assertStringContainsString('name="allDay"', $new);
         self::assertStringContainsString('name="translations.de.venue"', $new);
 
-        $category = $this->id($this->action('frootbox/events/category.create', ['translations' => ['de' => ['title' => 'Kurse'], 'en' => ['title' => '', 'slug' => '']]], $session));
+        $category = $this->id($this->action('category.create', ['group' => 'frootbox/events/categories', 'translations' => ['de' => ['title' => 'Kurse'], 'en' => ['title' => '', 'slug' => '']]], $session));
         $created = $this->action('frootbox/events/event.create', [
             'translations' => ['de' => ['title' => 'Röstkurs', 'venue' => 'Rösterei', 'teaser' => 'Vier Stunden.', 'text' => ['type' => 'doc', 'content' => [['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => 'Fruchtig.']]]]]]],
             'start' => '2030-03-04T09:00:00.000Z',
@@ -105,10 +99,10 @@ final class BackendTest extends BackendTestCase
         self::assertStringContainsString('href="/cms/events/' . $id . '">Röstkurs</a>', $list);
         self::assertStringNotContainsString('Röstkurs', $this->html($this->request('GET', '/cms/events?q=konzert', session: $session)));
 
-        $categories = $this->html($this->request('GET', '/cms/events/categories', session: $session));
-        self::assertStringContainsString('<fb-form action="frootbox/events/category.update"', $categories);
-        self::assertStringContainsString('value="kurse"', $categories);
-        self::assertStringContainsString('<fb-form action="frootbox/events/category.create"', $categories);
+        self::assertStringContainsString('href="/cms/categories?group=frootbox/events/categories"', $this->html($this->request('GET', '/cms/events', session: $session)), 'The categories are those of the core.');
+        $categories = $this->html($this->request('GET', '/cms/categories?group=frootbox/events/categories', session: $session));
+        self::assertStringContainsString('data-fb-focus>Kategorien der Termine</h2>', $categories);
+        self::assertStringContainsString('?category=kurse', $categories);
     }
 
     public function testAnEmptyLanguageOfACategoryIsNone(): void
@@ -116,13 +110,13 @@ final class BackendTest extends BackendTestCase
         $this->createUser('editor@example.org', ['editor']);
         $session = $this->signIn('editor@example.org');
 
-        $created = $this->action('frootbox/events/category.create', ['translations' => ['de' => ['title' => 'Kurse'], 'en' => ['title' => 'Courses']]], $session);
-        $updated = $this->action('frootbox/events/category.update', ['id' => $this->id($created), 'translations' => ['de' => ['title' => 'Kurse', 'slug' => 'kurse'], 'en' => ['title' => '', 'slug' => '']]], $session);
+        $created = $this->action('category.create', ['group' => 'frootbox/events/categories', 'translations' => ['de' => ['title' => 'Kurse'], 'en' => ['title' => 'Courses']]], $session);
+        $updated = $this->action('category.update', ['id' => $this->id($created), 'translations' => ['de' => ['title' => 'Kurse', 'slug' => 'kurse'], 'en' => ['title' => '', 'slug' => '']]], $session);
         $translations = $this->data($updated, 'translations');
         self::assertIsArray($translations);
         self::assertSame(['de'], array_keys($translations));
 
-        $error = $this->action('frootbox/events/category.create', ['translations' => ['de' => ['title' => '', 'slug' => '']]], $session, 422);
+        $error = $this->action('category.create', ['group' => 'frootbox/events/categories', 'translations' => ['de' => ['title' => '', 'slug' => '']]], $session, 422);
         self::assertStringContainsString('"pointer":"\\/translations\\/de\\/title"', json_encode($error, \JSON_THROW_ON_ERROR));
     }
 

@@ -16,7 +16,7 @@
     <fb-form action="frootbox/events/event.create" next="{{ path('frootbox.events.events') }}/{id}" done="{{ t('The event is saved as a draft.') }}">
         <form class="fb-card fb-card--padded fb-stack" novalidate>
             {% if space %}<input type="hidden" name="space" value="{{ space }}">{% endif %}
-            {% include '@frootbox/events/backend/fields.twig' with {language: language, translation: null, slug: false, data: null, image: null, image_value: null, categories: categories, chosen: [], editable: true} only %}
+            {% include '@frootbox/events/backend/fields.twig' with {language: language, translation: null, slug: false, data: null, image: null, image_value: null, chosen: [], editable: true} only %}
             <div class="fb-form__actions">
                 {{ ui.button({label: t('Save as a draft'), type: 'submit'}) }}
                 {{ ui.button({label: t('Cancel'), variant: 'ghost', href: path('frootbox.events.events')}) }}

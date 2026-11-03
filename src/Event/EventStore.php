@@ -20,6 +20,9 @@ final readonly class EventStore
 {
     public const string TYPE = 'frootbox/events/event';
 
+    /** The group of categories of the events (decision 0233) */
+    public const string CATEGORIES = 'frootbox/events/categories';
+
     public function __construct(
         private Revisions $revisions,
         private Urls $urls,

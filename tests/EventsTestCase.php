@@ -20,9 +20,7 @@ use Frootbox\Core\Plugin\AssignPlugin;
 use Frootbox\Core\Plugin\Space;
 use Frootbox\Core\Tests\Support\FixtureSite;
 use Frootbox\Core\Tests\Support\NotesTestCase;
-use Frootbox\Events\Category\Categories;
 use Frootbox\Events\Event\CreateEvent;
-use Frootbox\Events\Event\EventCategories;
 use Frootbox\Events\Event\Events;
 use Frootbox\Events\Event\EventStore;
 use Frootbox\Events\Event\EventTranslations;
@@ -39,7 +37,7 @@ abstract class EventsTestCase extends NotesTestCase
 
     protected function tables(): array
     {
-        return [EventCategories::TABLE, EventTranslations::TABLE, Events::TABLE, Categories::TABLE];
+        return [EventTranslations::TABLE, Events::TABLE, 'frootbox_events_event_categories', 'frootbox_events_categories'];
     }
 
     protected function environment(): Environment

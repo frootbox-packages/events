@@ -46,6 +46,6 @@ oder wann der Termin offline geht.
 
 ## Kategorien
 
-Unter **Kategorien** legst Du Themen an, etwa „Kurse“ oder „Konzerte“.
-Besucher können die Liste danach filtern. Löschst Du eine Kategorie,
-bleiben ihre Termine.
+Unter **Kategorien** legst Du Themen an, etwa „Kurse“ oder „Konzerte“,
+auch untereinander. Besucher können die Liste danach filtern. Löschst
+Du eine Kategorie, bleiben ihre Termine.

@@ -10,12 +10,14 @@
 - page.tree: {}
   as: tree
 
-- frootbox/events/category.create:
+- category.create:
+    group: frootbox/events/categories
     translations:
       de: { title: Kurse }
       en: { title: Courses }
   as: courses
-- frootbox/events/category.create:
+- category.create:
+    group: frootbox/events/categories
     translations:
       de: { title: Verkostungen }
       en: { title: Tastings }

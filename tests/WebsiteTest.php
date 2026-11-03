@@ -11,6 +11,7 @@ namespace Frootbox\Events\Tests;
 use DateTimeImmutable;
 use Frootbox\Core\Action\Undo\UndoAction;
 use Frootbox\Core\Cache\PageCache;
+use Frootbox\Core\Category\CreateCategory;
 use Frootbox\Core\Http\Exception\HttpException;
 use Frootbox\Core\Page\PublishPages;
 use Frootbox\Core\Page\UpdatePage;
@@ -21,7 +22,6 @@ use Frootbox\Events\Blocks\EventList;
 use Frootbox\Events\Blocks\EventTeaser;
 use Frootbox\Events\Calendar\Calendar;
 use Frootbox\Events\Calendar\CalendarHandler;
-use Frootbox\Events\Category\CreateCategory;
 use Frootbox\Events\Event\EndedEvents;
 use Frootbox\Events\Event\EventRendering;
 use Frootbox\Events\Event\EventStore;
@@ -91,12 +91,16 @@ final class WebsiteTest extends EventsTestCase
 
     public function testFiltersByCategory(): void
     {
-        $courses = $this->runner()->run(new CreateCategory(['de' => ['title' => 'Kurse']]));
-        $this->runner()->run(new CreateCategory(['de' => ['title' => 'Feste']]));
+        $courses = $this->runner()->run(new CreateCategory(EventStore::CATEGORIES, ['de' => ['title' => 'Kurse']]));
+        $barista = $this->runner()->run(new CreateCategory(EventStore::CATEGORIES, ['de' => ['title' => 'Barista']], $courses->id));
+        $this->runner()->run(new CreateCategory(EventStore::CATEGORIES, ['de' => ['title' => 'Feste']]));
         $this->event(['de' => ['title' => 'Röstkurs']], categories: [$courses->id]);
+        $this->event(['de' => ['title' => 'Latte Art']], '+30 days 18:00', categories: [$barista->id]);
         $this->event(['de' => ['title' => 'Hoffest']]);
 
         $html = $this->html('/termine?category=kurse');
+        self::assertStringContainsString('Latte Art', $html, 'A category counts with all below it.');
+        self::assertStringContainsString('<li data-depth="1"><a class="events-filter__link" href="/termine?category=barista">Barista</a></li>', $html);
 
         self::assertStringContainsString('Röstkurs', $html);
         self::assertStringNotContainsString('Hoffest', $html);

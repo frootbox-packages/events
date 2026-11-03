@@ -11,18 +11,14 @@ namespace Frootbox\Events;
 use Frootbox\Backend\Screen;
 use Frootbox\Backend\SearchCommand;
 use Frootbox\Backend\SearchLink;
+use Frootbox\Core\Category\CategoryGroup;
 use Frootbox\Core\Extension\Extension;
 use Frootbox\Core\Extension\Registry;
 use Frootbox\Core\Schedule\ScheduleRan;
-use Frootbox\Events\Backend\CategoriesHandler;
 use Frootbox\Events\Backend\EventHandler;
 use Frootbox\Events\Backend\EventsHandler;
 use Frootbox\Events\Calendar\Calendar;
 use Frootbox\Events\Calendar\CalendarHandler;
-use Frootbox\Events\Category\CreateCategory;
-use Frootbox\Events\Category\DeleteCategory;
-use Frootbox\Events\Category\ListCategories;
-use Frootbox\Events\Category\UpdateCategory;
 use Frootbox\Events\Event\CreateEvent;
 use Frootbox\Events\Event\DeleteEvent;
 use Frootbox\Events\Event\DiscardEvent;
@@ -54,13 +50,10 @@ final class EventsExtension implements Extension
         $registry->action(DeleteEvent::class);
         $registry->query(ListEvents::class);
         $registry->query(ShowEvent::class);
-        $registry->action(CreateCategory::class);
-        $registry->action(UpdateCategory::class);
-        $registry->action(DeleteCategory::class);
-        $registry->query(ListCategories::class);
         $registry->query(SpaceChoices::class);
 
         $registry->plugin(EventPlugin::class);
+        $registry->add(CategoryGroup::class, new CategoryGroup(EventStore::CATEGORIES, 'Categories of the events', [EventStore::TYPE]));
         $registry->scheduled(EventSchedule::class);
         $registry->searchSource(EventSource::class);
 
@@ -80,7 +73,6 @@ final class EventsExtension implements Extension
         $registry->mount('backend.path', '/cms')
             ->get('/events', EventsHandler::class, 'frootbox.events.events')
             ->get('/events/new', EventHandler::class, 'frootbox.events.events.new')
-            ->get('/events/categories', CategoriesHandler::class, 'frootbox.events.events.categories')
             ->get('/events/{id:[0-9A-Za-z]{26}}', EventHandler::class, 'frootbox.events.events.show');
 
         $registry->add(Screen::class, new Screen('Events', 'frootbox.events.events', Screen::CONTENT, 'calendar', EventsHandler::PERMISSION, order: 17));

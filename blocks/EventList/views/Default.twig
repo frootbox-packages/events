@@ -44,7 +44,7 @@ fields:
       <nav class="events-filter" aria-label="{{ t('Categories') }}">
         <ul class="events-filter__list">
           {% for filter in filters %}
-            <li><a class="events-filter__link" href="{{ filter.href }}"{% if filter.current %} aria-current="page"{% endif %}>{{ filter.title ?? t('All') }}</a></li>
+            <li{% if filter.depth ?? 0 %} data-depth="{{ filter.depth }}"{% endif %}><a class="events-filter__link" href="{{ filter.href }}"{% if filter.current %} aria-current="page"{% endif %}>{{ filter.title ?? t('All') }}</a></li>
           {% endfor %}
         </ul>
       </nav>

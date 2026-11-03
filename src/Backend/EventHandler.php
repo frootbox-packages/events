@@ -14,7 +14,6 @@ use Frootbox\Core\Action\Runner;
 use Frootbox\Core\Language\Languages;
 use Frootbox\Core\Media\ShowMedium;
 use Frootbox\Database\EntityNotFoundException;
-use Frootbox\Events\Category\ListCategories;
 use Frootbox\Events\Event\EventData;
 use Frootbox\Events\Event\ShowEvent;
 use Psr\Http\Message\ResponseInterface;
@@ -41,14 +40,12 @@ final readonly class EventHandler implements RequestHandlerInterface
         }
 
         $id = $request->getAttribute('id');
-        $categories = $this->categories();
 
         if (!\is_string($id)) {
             $space = $request->getQueryParams()['space'] ?? null;
 
             return $this->view->render($request, '@frootbox/events/backend/event-new.twig', [
                 'language' => $this->languages->default(),
-                'categories' => $categories,
                 'space' => \is_string($space) && '' !== $space ? $space : null,
             ]);
         }
@@ -67,7 +64,6 @@ final readonly class EventHandler implements RequestHandlerInterface
             'languages' => $this->languages->all(),
             'translation' => $data->translations[$language->code] ?? null,
             'source' => $data->translations[$default] ?? ([] === $data->translations ? null : array_values($data->translations)[0]),
-            'categories' => $categories,
             'image' => $this->image($data),
         ]);
     }
@@ -89,25 +85,6 @@ final readonly class EventHandler implements RequestHandlerInterface
         }
 
         return '';
-    }
-
-    /**
-     * The categories with their title in the first language.
-     *
-     * @return list<array{id: string, title: string}>
-     */
-    private function categories(): array
-    {
-        $default = $this->languages->default()->code;
-
-        $list = [];
-
-        foreach ($this->runner->ask(new ListCategories()) as $category) {
-            $titles = array_filter(array_map(static fn(int|string $code): ?string => $category->title((string) $code), array_keys($category->translations)), static fn(?string $title): bool => null !== $title && '' !== $title);
-            $list[] = ['id' => $category->id, 'title' => $category->title($default) ?? (array_values($titles)[0] ?? $category->id)];
-        }
-
-        return $list;
     }
 
     /**

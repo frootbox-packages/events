@@ -47,6 +47,6 @@ when the event goes offline.
 
 ## Categories
 
-Under **Categories** you create topics such as "Courses" or "Concerts".
-Visitors can filter the list by them. Deleting a category keeps its
-events.
+Under **Categories** you create topics such as "Courses" or "Concerts",
+also below each other. Visitors can filter the list by them. Deleting a
+category keeps its events.

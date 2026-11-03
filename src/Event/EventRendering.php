@@ -10,12 +10,12 @@ namespace Frootbox\Events\Event;
 
 use DateTimeImmutable;
 use DateTimeInterface;
+use Frootbox\Core\Category\Category;
 use Frootbox\Core\Config\Config;
 use Frootbox\Core\Field\Field;
 use Frootbox\Core\Field\FieldTypes;
 use Frootbox\Core\Url\Urls;
 use Frootbox\Events\Calendar\Calendar;
-use Frootbox\Events\Category\Category;
 use IntlDateFormatter;
 use Twig\Markup;
 

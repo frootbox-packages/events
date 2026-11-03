@@ -26,8 +26,11 @@ The calendar file of an event (iCalendar) lives at
 Everything goes through actions, also from the REST API and the AI:
 `frootbox/events/event.create`, `.update`, `.publish`, `.unpublish`,
 `.schedule`, `.discard`, `.delete`, the queries `frootbox/events/event.list`
-and `.show`, and `frootbox/events/category.create`, `.update`, `.delete`
-and `.list`. The role "editor" gets `frootbox/events/*` on installation.
+and `.show`. Categories are the ones of the core (decision 0233) in the
+group `frootbox/events/categories`: `category.create` with that group, `.update`,
+`.move`, `.delete` and `category.list`; the actions take `categories` as
+a list of their ids. The role "editor" gets `frootbox/events/*` on
+installation.
 
 ## In a template
 

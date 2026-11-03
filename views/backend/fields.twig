@@ -16,11 +16,4 @@
 {{ ui.field({label: t('Street and town'), name: 'address', id: 'event-address', value: data ? data.address : '', optional: true, disabled: not editable, hint: t('In one line, e.g. "Hafenstraße 12, 20457 Hamburg".'), attrs: {maxlength: 300}}) }}
 {{ ui.field({label: t('Coordinates'), name: 'coordinates', id: 'event-coordinates', value: data ? data.coordinates : '', optional: true, disabled: not editable, hint: t('Latitude and longitude for the map, e.g. "53.5444, 9.9663". Copy them from a map.'), attrs: {dir: 'ltr', maxlength: 40, autocomplete: 'off'}}) }}
 {{ ui.image({label: t('Image'), name: 'image', id: 'event-image', value: image_value, preview: image.preview ?? null, file: image.file ?? null, optional: true, disabled: not editable}) }}
-{% if categories is not empty %}
-<fieldset class="fb-fieldset">
-    <legend class="fb-fieldset__legend">{{ t('Categories') }} <span class="fb-label__optional">({{ t('optional') }})</span></legend>
-    {% for category in categories %}
-        {{ ui.check({label: category.title, name: 'categories[]', id: 'event-category-' ~ category.id, value: category.id, checked: category.id in chosen, disabled: not editable}) }}
-    {% endfor %}
-</fieldset>
-{% endif %}
+{% include '@backend/categories/choices.twig' with {type: 'frootbox/events/event', chosen: chosen, disabled: not editable, prefix: 'event'} only %}

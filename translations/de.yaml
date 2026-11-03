@@ -61,16 +61,8 @@
 "In one line, e.g. \"Hafenstraße 12, 20457 Hamburg\".": "In einer Zeile, z. B. „Hafenstraße 12, 20457 Hamburg“."
 "Coordinates": "Koordinaten"
 "Latitude and longitude for the map, e.g. \"53.5444, 9.9663\". Copy them from a map.": "Breite und Länge für die Karte, z. B. „53.5444, 9.9663“. Kopier sie aus einer Karte."
-"Topics of the events, such as courses or concerts. Visitors can filter the list by them.": "Themen der Termine, etwa Kurse oder Konzerte. Besucher können die Liste danach filtern."
-"Used in the filter of the list, e.g. ?category=courses.": "Steht im Filter der Liste, z. B. ?category=kurse."
 "Delete {title}": "{title} löschen"
-"The category is deleted.": "Die Kategorie ist gelöscht."
-"The events stay, they just lose this category.": "Die Termine bleiben, sie verlieren nur diese Kategorie."
-"No categories yet": "Noch keine Kategorien"
-"Events do not need one. Create categories if visitors should filter by topic.": "Termine brauchen keine. Leg Kategorien an, wenn Besucher nach Themen filtern sollen."
-"New category": "Neue Kategorie"
-"The category is created.": "Die Kategorie ist angelegt."
-"Create the category": "Kategorie anlegen"
 "The upcoming events of the space the page shows, from the next one on, page by page and by category, and the past ones on request. Each event gets its own address below the page; there it shows the event with its place, a map and a file for the calendar.": "Die kommenden Termine der Verwaltung, die die Seite zeigt, ab dem nächsten, Seite für Seite und nach Kategorie, auf Wunsch auch die vergangenen. Jeder Termin bekommt eine eigene Adresse unter der Seite; dort steht der Termin mit Ort, Karte und einer Datei für den Kalender."
 "There is no such space of the events.": "Diese Verwaltung gibt es in den Terminen nicht."
 Space: Verwaltung
+Categories of the events: Kategorien der Termine

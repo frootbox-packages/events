@@ -9,7 +9,7 @@ declare(strict_types=1);
 namespace Frootbox\Events\Event;
 
 use DateTimeImmutable;
-use Frootbox\Events\Category\Category;
+use Frootbox\Core\Category\Category;
 
 /**
  * A published event in one language, as lists and its page show it.

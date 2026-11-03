@@ -10,6 +10,7 @@ namespace Frootbox\Events\Event;
 
 use DateTimeImmutable;
 use Frootbox\Core\Action\InvalidInputException;
+use Frootbox\Core\Category\ObjectCategories;
 use Frootbox\Core\Language\Languages;
 use Frootbox\Core\Media\MediaEditor;
 use Frootbox\Core\Page\Slug;
@@ -18,7 +19,6 @@ use Frootbox\Core\Revision\RevisionStore;
 use Frootbox\Core\Support\Message;
 use Frootbox\Core\Url\AddressSync;
 use Frootbox\Database\EntityNotFoundException;
-use Frootbox\Events\Category\Categories;
 use Frootbox\RichText\RichText;
 
 /**
@@ -46,8 +46,7 @@ final readonly class EventEditor
         private RevisionStore $revisions,
         private Events $events,
         private EventTranslations $translations,
-        private EventCategories $eventCategories,
-        private Categories $categories,
+        private ObjectCategories $categories,
         private MediaEditor $media,
         private RichText $richText,
         private AddressSync $addresses,
@@ -311,8 +310,9 @@ final readonly class EventEditor
     }
 
     /**
-     * The categories of an action's input, each must exist. Categories
-     * deleted later simply drop out when publishing.
+     * The categories of an action's input, each must be one of a group
+     * for events (decision 0233). Categories deleted later simply drop
+     * out when publishing.
      *
      * @param list<string> $ids
      *
@@ -322,19 +322,7 @@ final readonly class EventEditor
      */
     public function categories(string $action, array $ids): array
     {
-        $errors = [];
-
-        foreach ($ids as $index => $category) {
-            if (null === $this->categories->fetchById($category)) {
-                $errors['/categories/' . $index] = new Message('There is no category {id}.', ['id' => $category]);
-            }
-        }
-
-        if ([] !== $errors) {
-            throw new InvalidInputException($action, $errors);
-        }
-
-        return array_values(array_unique($ids));
+        return $this->categories->check($action, EventStore::TYPE, $ids);
     }
 
     /**
@@ -477,21 +465,7 @@ final readonly class EventEditor
             $this->translations->delete($removed->id);
         }
 
-        $categories = [];
-
-        foreach ($this->eventCategories->fetch(['where' => ['eventId' => $id]]) as $row) {
-            if (\in_array($row->categoryId, $data->categories, true)) {
-                $categories[] = $row->categoryId;
-            } else {
-                $this->eventCategories->delete($row->id);
-            }
-        }
-
-        foreach (array_diff(array_unique($data->categories), $categories) as $category) {
-            if (null !== $this->categories->fetchById($category)) {
-                $this->eventCategories->insert(['eventId' => $id, 'categoryId' => $category]);
-            }
-        }
+        $this->categories->sync(EventStore::TYPE, $id, $data->categories);
     }
 
     private function removeRows(string $id): void
@@ -500,10 +474,7 @@ final readonly class EventEditor
             $this->translations->delete($translation->id);
         }
 
-        foreach ($this->eventCategories->fetch(['where' => ['eventId' => $id]]) as $row) {
-            $this->eventCategories->delete($row->id);
-        }
-
+        $this->categories->clear(EventStore::TYPE, $id);
         $this->events->delete($id);
     }
 

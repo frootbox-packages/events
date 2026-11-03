@@ -8,11 +8,11 @@ declare(strict_types=1);
 
 namespace Frootbox\Events\Blocks;
 
+use Frootbox\Core\Category\ObjectCategories;
 use Frootbox\Core\Component\BlockContext;
 use Frootbox\Core\Component\BlockController;
 use Frootbox\Core\Plugin\Space;
 use Frootbox\Core\Url\Urls;
-use Frootbox\Events\Category\Categories;
 use Frootbox\Events\Event\EventRendering;
 use Frootbox\Events\Event\EventStore;
 use Frootbox\Events\Event\EventView;
@@ -28,7 +28,7 @@ final readonly class EventList implements BlockController
 {
     public function __construct(
         private PublishedEvents $events,
-        private Categories $categories,
+        private ObjectCategories $categories,
         private EventRendering $rendering,
         private Urls $urls,
     ) {}
@@ -48,11 +48,12 @@ final readonly class EventList implements BlockController
             }
         }
 
-        $category = self::text($context->query('category'));
-        $category = null === $category ? null : $this->categories->bySlug($language, $category);
+        // A category counts with all below it (decision 0233).
+        $slug = self::text($context->query('category'));
+        [$category, $chosen] = (null === $slug ? null : $this->categories->bySlug(EventStore::TYPE, $language, $slug)) ?? [null, null];
         $past = '1' === $context->query('past') && false !== ($context->options['past'] ?? true);
         $perPage = max(1, min(50, is_numeric($context->options['perPage'] ?? null) ? (int) $context->options['perPage'] : 10));
-        $total = $this->events->count($language, $category?->id, $past, spaces: $spaces);
+        $total = $this->events->count($language, $chosen, $past, spaces: $spaces);
         $pages = max(1, (int) ceil($total / $perPage));
         $page = min($pages, max(1, (int) ($context->query('page') ?? 1)));
         $given = static fn(?string $value): bool => null !== $value;
@@ -62,12 +63,12 @@ final readonly class EventList implements BlockController
         $filters = [];
 
         if (false !== ($context->options['categories'] ?? true)) {
-            foreach ($this->categories->all() as $item) {
-                $slug = $item->slug($language);
+            foreach ($this->categories->tree(EventStore::TYPE, EventStore::CATEGORIES) as $item) {
+                $itemSlug = $item->slug($language);
                 $title = $item->title($language);
 
-                if (null !== $slug && null !== $title) {
-                    $filters[] = ['title' => $title, 'href' => $link(array_filter(['category' => $slug, 'past' => $filter['past'] ?? null], $given)), 'current' => $item->id === $category?->id];
+                if (null !== $itemSlug && null !== $title) {
+                    $filters[] = ['title' => $title, 'href' => $link(array_filter(['category' => $itemSlug, 'past' => $filter['past'] ?? null], $given)), 'current' => $item->id === $category?->id, 'depth' => $item->depth];
                 }
             }
         }
@@ -75,7 +76,7 @@ final readonly class EventList implements BlockController
         $categoryOnly = array_filter(['category' => $filter['category'] ?? null], $given);
 
         return [
-            'events' => array_map(fn(EventView $event): array => $this->withLinks($this->rendering->teaser($event, $context->language, $images), $base), $this->events->list($language, $category?->id, $past, $perPage, ($page - 1) * $perPage, spaces: $spaces)),
+            'events' => array_map(fn(EventView $event): array => $this->withLinks($this->rendering->teaser($event, $context->language, $images), $base), $this->events->list($language, $chosen, $past, $perPage, ($page - 1) * $perPage, spaces: $spaces)),
             'filters' => [] === $filters ? [] : [['title' => null, 'href' => $link(array_filter(['past' => $filter['past'] ?? null], $given)), 'current' => null === $category], ...$filters],
             'filtered' => null !== $category,
             'past' => $past,
