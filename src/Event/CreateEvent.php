@@ -27,6 +27,7 @@ final readonly class CreateEvent implements Action
      * @param array<mixed>      $translations
      * @param array<mixed>|null $image
      * @param list<string>      $categories
+     * @param list<string>      $tags
      */
     public function __construct(
         #[Description('Title, slug, teaser, venue and text by language: {"de": {"title": "Röstkurs", "venue": "Rösterei", "teaser": "…", "text": {"type": "doc", "content": []}}}. The slug is made from the title if left out.')]
@@ -50,6 +51,9 @@ final readonly class CreateEvent implements Action
         #[Length(1, 64)]
         #[Description('The space of the events, "default" for the default one; see space.list')]
         public string $space = Space::DEFAULT,
+        #[ListOf('string')]
+        #[Description('Ids, keys or labels of tags; a new word becomes a tag unless only presets count, see tag.choices')]
+        public array $tags = [],
     ) {}
 
     public function handle(EventEditor $editor): EventDetails
@@ -64,6 +68,7 @@ final readonly class CreateEvent implements Action
             $editor->categories('frootbox/events/event.create', $this->categories),
             $editor->translations('frootbox/events/event.create', $this->translations),
             $this->space,
+            $editor->tags('frootbox/events/event.create', $this->space, $this->tags),
         );
 
         return $editor->saveDraft('frootbox/events/event.create', Ulid::generate(), $data);

@@ -71,6 +71,7 @@ final class BackendTest extends BackendTestCase
             'coordinates' => '53.5562, 9.9285',
             'image' => [],
             'categories' => [$category],
+            'tags' => ['Röstung'],
         ], $session);
         $id = $this->id($created);
 
@@ -78,6 +79,7 @@ final class BackendTest extends BackendTestCase
         self::assertStringContainsString('<h1 class="fb-heading-1" tabindex="-1" data-fb-focus>Röstkurs</h1>', $show);
         self::assertStringContainsString('name="translations.de.slug"', $show);
         self::assertStringContainsString('value="roestkurs"', $show);
+        self::assertMatchesRegularExpression('~name="tags\[\]" value="[0-9A-Z]{26}" checked>\s*<span class="fb-check__text"><span>Röstung</span>~', $show, 'A typed word became a tag.');
         self::assertStringContainsString('value="Rösterei"', $show);
         self::assertStringContainsString('value="53.5562, 9.9285"', $show);
         self::assertStringContainsString('&quot;text&quot;:&quot;Fruchtig.&quot;', $show, 'The text goes to <fb-rich-text> as JSON.');

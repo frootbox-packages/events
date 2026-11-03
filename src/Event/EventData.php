@@ -27,6 +27,7 @@ final readonly class EventData
      * @param array<mixed>|null          $image        The value of an image field: {"media": "01J…", "alt": "…"}
      * @param list<string>               $categories   Ids of the categories
      * @param array<string, EventText>   $translations By language
+     * @param list<string>               $tags         Ids of the tags (decision 0239)
      */
     public function __construct(
         public DateTimeImmutable $start,
@@ -39,6 +40,7 @@ final readonly class EventData
         public array $translations = [],
         /** The space of the events it belongs to (decision 0232) */
         public string $space = Space::DEFAULT,
+        public array $tags = [],
     ) {}
 
     /**
@@ -64,6 +66,7 @@ final readonly class EventData
             array_values(array_filter(\is_array($data['categories'] ?? null) ? $data['categories'] : [], \is_string(...))),
             $translations,
             \is_string($data['space'] ?? null) && '' !== $data['space'] ? $data['space'] : Space::DEFAULT,
+            array_values(array_filter(\is_array($data['tags'] ?? null) ? $data['tags'] : [], \is_string(...))),
         );
     }
 
@@ -82,6 +85,7 @@ final readonly class EventData
             'categories' => $this->categories,
             'translations' => array_map(static fn(EventText $text): array => $text->toArray(), $this->translations),
             'space' => $this->space,
+            'tags' => $this->tags,
         ];
     }
 

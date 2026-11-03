@@ -27,6 +27,7 @@ final readonly class UpdateEvent implements Action
      * @param array<mixed>|null $translations
      * @param array<mixed>|null $image
      * @param list<string>|null $categories
+     * @param list<string>|null $tags
      */
     public function __construct(
         #[Pattern(Ulid::PATTERN)]
@@ -46,6 +47,9 @@ final readonly class UpdateEvent implements Action
         #[ListOf('string')]
         #[Description('Ids of categories, replacing the ones before')]
         public ?array $categories = null,
+        #[ListOf('string')]
+        #[Description('Ids, keys or labels of tags, replacing the ones before; a new word becomes a tag unless only presets count')]
+        public ?array $tags = null,
     ) {}
 
     public function handle(EventEditor $editor, EventStore $store): EventDetails
@@ -66,6 +70,7 @@ final readonly class UpdateEvent implements Action
             null === $this->categories ? $current->categories : $editor->categories('frootbox/events/event.update', $this->categories),
             null === $this->translations ? $current->translations : $editor->translations('frootbox/events/event.update', $this->translations, $current->translations),
             $current->space,
+            null === $this->tags ? $current->tags : $editor->tags('frootbox/events/event.update', $current->space, $this->tags),
         );
 
         return $editor->saveDraft('frootbox/events/event.update', $this->id, $data);

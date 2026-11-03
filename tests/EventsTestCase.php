@@ -98,10 +98,11 @@ abstract class EventsTestCase extends NotesTestCase
      *
      * @param array<string, mixed> $translations
      * @param list<string>         $categories
+     * @param list<string>         $tags
      */
-    protected function event(array $translations, string $start = '+3 days 18:00', ?string $end = null, bool $allDay = false, array $categories = [], string $address = '', string $coordinates = '', bool $publish = true, string $space = Space::DEFAULT): string
+    protected function event(array $translations, string $start = '+3 days 18:00', ?string $end = null, bool $allDay = false, array $categories = [], string $address = '', string $coordinates = '', bool $publish = true, string $space = Space::DEFAULT, array $tags = []): string
     {
-        $details = $this->runner()->run(new CreateEvent($translations, new DateTimeImmutable($start), null === $end ? null : new DateTimeImmutable($end), $allDay, $address, $coordinates, categories: $categories, space: $space));
+        $details = $this->runner()->run(new CreateEvent($translations, new DateTimeImmutable($start), null === $end ? null : new DateTimeImmutable($end), $allDay, $address, $coordinates, categories: $categories, space: $space, tags: $tags));
 
         if ($publish) {
             $this->runner()->run(new PublishEvents([$details->id]));

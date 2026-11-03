@@ -10,6 +10,7 @@ namespace Frootbox\Events\Event;
 
 use DateTimeImmutable;
 use Frootbox\Core\Category\Category;
+use Frootbox\Core\Tag\Tag;
 
 /**
  * A published event in one language, as lists and its page show it.
@@ -20,6 +21,7 @@ final readonly class EventView
      * @param array<mixed>|null $image
      * @param array<mixed>      $text
      * @param list<Category>    $categories
+     * @param list<Tag>         $tags
      */
     public function __construct(
         public string $id,
@@ -36,5 +38,6 @@ final readonly class EventView
         public array $text,
         public ?array $image,
         public array $categories,
+        public array $tags = [],
     ) {}
 }

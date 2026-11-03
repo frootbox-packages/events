@@ -19,6 +19,9 @@
 "Upcoming events": "Kommende Termine"
 "Past events": "Vergangene Termine"
 "Past events, the latest first.": "Vergangene Termine, die letzten zuerst."
+"Tags": "Schlagwörter"
+"Events with the tag “{tag}”": "Termine mit dem Schlagwort „{tag}“"
+"Only with the tag": "Nur mit dem Schlagwort"
 "No events match this choice.": "Zu dieser Auswahl gibt es keine Termine."
 "No upcoming events.": "Zurzeit stehen keine Termine an."
 "No past events.": "Noch keine vergangenen Termine."
@@ -62,7 +65,7 @@
 "Coordinates": "Koordinaten"
 "Latitude and longitude for the map, e.g. \"53.5444, 9.9663\". Copy them from a map.": "Breite und Länge für die Karte, z. B. „53.5444, 9.9663“. Kopier sie aus einer Karte."
 "Delete {title}": "{title} löschen"
-"The upcoming events of the space the page shows, from the next one on, page by page and by category, and the past ones on request. Each event gets its own address below the page; there it shows the event with its place, a map and a file for the calendar.": "Die kommenden Termine der Verwaltung, die die Seite zeigt, ab dem nächsten, Seite für Seite und nach Kategorie, auf Wunsch auch die vergangenen. Jeder Termin bekommt eine eigene Adresse unter der Seite; dort steht der Termin mit Ort, Karte und einer Datei für den Kalender."
+"The upcoming events of the space the page shows, from the next one on, page by page, by category and by tag, and the past ones on request. Each event gets its own address below the page; there it shows the event with its place, a map and a file for the calendar.": "Die kommenden Termine der Verwaltung, die die Seite zeigt, ab dem nächsten, Seite für Seite, nach Kategorie und nach Schlagwort, auf Wunsch auch die vergangenen. Jeder Termin bekommt eine eigene Adresse unter der Seite; dort steht der Termin mit Ort, Karte und einer Datei für den Kalender."
 "There is no such space of the events.": "Diese Verwaltung gibt es in den Terminen nicht."
 Space: Verwaltung
 Categories of the events: Kategorien der Termine

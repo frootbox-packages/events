@@ -49,3 +49,10 @@ oder wann der Termin offline geht.
 Unter **Kategorien** legst Du Themen an, etwa „Kurse“ oder „Konzerte“,
 auch untereinander. Besucher können die Liste danach filtern. Löschst
 Du eine Kategorie, bleiben ihre Termine.
+
+## Schlagwörter
+
+Hak die passenden Schlagwörter an oder tipp neue Wörter ein, getrennt
+durch Kommas. Der Termin zeigt seine Schlagwörter unter dem Text, jedes
+führt zur Liste aller Termine damit. Ein Teaser der nächsten Termine
+kann nur die mit einem Schlagwort zeigen.

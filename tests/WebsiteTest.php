@@ -9,6 +9,7 @@ declare(strict_types=1);
 namespace Frootbox\Events\Tests;
 
 use DateTimeImmutable;
+use Frootbox\Core\Action\InvalidInputException;
 use Frootbox\Core\Action\Undo\UndoAction;
 use Frootbox\Core\Cache\PageCache;
 use Frootbox\Core\Category\CreateCategory;
@@ -108,6 +109,34 @@ final class WebsiteTest extends EventsTestCase
         self::assertStringContainsString('<a class="events-filter__link" href="/termine">Alle</a>', $html);
         self::assertStringContainsString('<a href="/termine?category=kurse&amp;past=1">Vergangene Termine</a>', $html, 'The past ones keep the category.');
         self::assertStringContainsString('Hoffest', $this->html('/termine?category=unbekannt'), 'An unknown category shows all.');
+    }
+
+    public function testFiltersByTagsOfAClosedList(): void
+    {
+        // The events have their own presets, a closed list (decision 0239).
+        file_put_contents($this->get(ProjectPaths::class)->config('tags.yaml'), "tags: [Nachhaltigkeit]\ntypes:\n  frootbox/events/event: { tags: [Kurs, Fest], closed: true }\n");
+        $this->event(['de' => ['title' => 'Röstkurs']], tags: ['kurs']);
+        $this->event(['de' => ['title' => 'Hoffest']], '+30 days 18:00', tags: ['Fest', 'Nachhaltigkeit']);
+
+        try {
+            $this->event(['de' => ['title' => 'Zufall']], tags: ['Zufall']);
+            self::fail('Only the presets count.');
+        } catch (InvalidInputException $exception) {
+            self::assertSame(['/tags/0'], array_keys($exception->errors));
+        }
+
+        $html = $this->html('/termine?tag=fest');
+        self::assertStringContainsString('Hoffest', $html);
+        self::assertStringNotContainsString('Röstkurs', $html);
+        self::assertStringContainsString('Termine mit dem Schlagwort „Fest“ · <a href="/termine">Alle Termine</a>', $html);
+        self::assertStringContainsString('<a href="/termine?tag=fest&amp;past=1">Vergangene Termine</a>', $html, 'The past ones keep the tag.');
+        self::assertStringContainsString('<li><a class="events-tags__link" href="/termine?tag=fest">Fest</a></li><li><a class="events-tags__link" href="/termine?tag=nachhaltigkeit">Nachhaltigkeit</a></li>', $this->html('/termine/hoffest'));
+
+        $chosen = $this->page($this->start, 'Kurse', [['block' => 'frootbox/events/EventTeaser', 'options' => ['tag' => 'kurs']]]);
+        $this->runner()->run(new PublishPages([$chosen]));
+        $teaser = $this->html('/kurse');
+        self::assertStringContainsString('Röstkurs', $teaser);
+        self::assertStringNotContainsString('Hoffest', $teaser);
     }
 
     public function testShowsAnEventAtItsAddress(): void

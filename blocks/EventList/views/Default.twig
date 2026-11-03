@@ -1,8 +1,8 @@
 {# frootbox
 title: Events
-description: The upcoming events of the space the page shows, from the next one on, page by page and by category, and the past ones on request. Each event gets its own address below the page; there it shows the event with its place, a map and a file for the calendar.
+description: The upcoming events of the space the page shows, from the next one on, page by page, by category and by tag, and the past ones on request. Each event gets its own address below the page; there it shows the event with its place, a map and a file for the calendar.
 plugin: true
-query: [page, category, past]
+query: [page, category, tag, past]
 options:
   perPage: { type: number, label: Events per page, default: 10, min: 1, max: 50 }
   images: { type: boolean, label: Images in the list, default: false }
@@ -30,6 +30,11 @@ fields:
     </header>
     {% if event.image %}<div class="events-event__media">{{ event.image }}</div>{% endif %}
     <div class="events-event__text">{{ event.text }}</div>
+    {% if event.tags %}
+      <ul class="events-tags" aria-label="{{ t('Tags') }}">
+        {%- for tag in event.tags %}<li><a class="events-tags__link" href="{{ tag.href }}">{{ tag.label }}</a></li>{% endfor -%}
+      </ul>
+    {% endif %}
     {% if map %}<div class="events-event__map">{{ map }}</div>{% endif %}
     <ul class="events-event__links">
       <li><a href="{{ event.calendar }}" download>{{ t('Add to calendar') }}</a></li>
@@ -48,6 +53,9 @@ fields:
           {% endfor %}
         </ul>
       </nav>
+    {% endif %}
+    {% if tag %}
+      <p class="events-list__tag">{{ t('Events with the tag “{tag}”', {tag: tag.label}) }} · <a href="{{ tag.all }}">{{ t('All events') }}</a></p>
     {% endif %}
     {% if past %}<p class="events-list__status">{{ t('Past events, the latest first.') }}</p>{% endif %}
     {% if events %}

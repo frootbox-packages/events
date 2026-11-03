@@ -7,6 +7,8 @@
 "Upcoming events": "الفعاليات القادمة"
 "Past events": "الفعاليات السابقة"
 "Past events, the latest first.": "الفعاليات السابقة، الأحدث أولاً."
+"Tags": "الوسوم"
+"Events with the tag “{tag}”": "فعاليات بالوسم «{tag}»"
 "No events match this choice.": "لا توجد فعاليات لهذا الاختيار."
 "No upcoming events.": "لا توجد فعاليات قادمة."
 "No past events.": "لا توجد فعاليات سابقة بعد."

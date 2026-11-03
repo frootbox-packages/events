@@ -1,18 +1,20 @@
 # frootbox/events
 
 Events for the Frootbox CMS: dates with time, place, drafts, versions and
-planned publishing, categories, a calendar file for each event and two
+planned publishing, categories, tags, a calendar file for each event and two
 blocks for any theme.
 
 - **Events** (`frootbox/events/EventList`) is the view of the plugin
   (decision 0232): a page that shows a space of the events lists the
   upcoming ones at `plugin()` from the next one on, page by page,
-  filtered by category (`?category=`), and the past ones with `?past=1`.
+  filtered by category (`?category=`) and tag (`?tag=`), and the past
+  ones with `?past=1`.
   Each published event gets an address below that page, e.g.
   `/events/roasting-course`; there the view shows the event with its place, a map after consent,
   structured data for search engines and a link to the calendar file.
 - **Next events** (`frootbox/events/EventTeaser`) shows the next few of
-  all spaces or of one, with a link to the list.
+  all spaces or of one, optionally only those with a tag, with a link to
+  the list.
 
 An event is upcoming until it is over: until its end, else its start, or
 until the end of its last day when it lasts all day long. When one is
@@ -29,7 +31,10 @@ Everything goes through actions, also from the REST API and the AI:
 and `.show`. Categories are the ones of the core (decision 0233) in the
 group `frootbox/events/categories`: `category.create` with that group, `.update`,
 `.move`, `.delete` and `category.list`; the actions take `categories` as
-a list of their ids. The role "editor" gets `frootbox/events/*` on
+a list of their ids. Tags are the common stock of the core (decision
+0239): the actions take `tags` as ids, keys or labels, and new words
+become tags unless `config/tags.yaml` closes the list for
+`frootbox/events/event` or the space. The role "editor" gets `frootbox/events/*` on
 installation.
 
 ## In a template

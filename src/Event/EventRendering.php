@@ -14,6 +14,7 @@ use Frootbox\Core\Category\Category;
 use Frootbox\Core\Config\Config;
 use Frootbox\Core\Field\Field;
 use Frootbox\Core\Field\FieldTypes;
+use Frootbox\Core\Tag\ObjectTags;
 use Frootbox\Core\Url\Urls;
 use Frootbox\Events\Calendar\Calendar;
 use IntlDateFormatter;
@@ -37,6 +38,7 @@ final readonly class EventRendering
         private Urls $urls,
         private Calendar $calendar,
         private Config $config,
+        private ObjectTags $tags,
     ) {}
 
     /**
@@ -61,6 +63,8 @@ final readonly class EventRendering
                 'title' => $category->title($event->language) ?? '',
                 'slug' => $category->slug($event->language) ?? '',
             ], $event->categories),
+            // Internal ones never (decision 0239).
+            'tags' => $this->tags->visible($event->tags, $event->language),
         ];
     }
 

@@ -50,3 +50,10 @@ when the event goes offline.
 Under **Categories** you create topics such as "Courses" or "Concerts",
 also below each other. Visitors can filter the list by them. Deleting a
 category keeps its events.
+
+## Tags
+
+Tick the tags that fit or type new words, separated by commas. The
+event shows its tags below the text, and each leads to the list of all
+events with that tag. A teaser of the next events can show only those
+with one tag.

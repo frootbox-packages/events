@@ -17,6 +17,7 @@ use Frootbox\Core\Page\Slug;
 use Frootbox\Core\Plugin\PluginSpaces;
 use Frootbox\Core\Revision\RevisionStore;
 use Frootbox\Core\Support\Message;
+use Frootbox\Core\Tag\ObjectTags;
 use Frootbox\Core\Url\AddressSync;
 use Frootbox\Database\EntityNotFoundException;
 use Frootbox\RichText\RichText;
@@ -47,6 +48,7 @@ final readonly class EventEditor
         private Events $events,
         private EventTranslations $translations,
         private ObjectCategories $categories,
+        private ObjectTags $tags,
         private MediaEditor $media,
         private RichText $richText,
         private AddressSync $addresses,
@@ -326,6 +328,22 @@ final readonly class EventEditor
     }
 
     /**
+     * The tags of an action's input (decision 0239): ids, keys or labels;
+     * presets of the space and new words become tags here, unless only
+     * the presets count.
+     *
+     * @param list<string> $entries
+     *
+     * @return list<string>
+     *
+     * @throws InvalidInputException
+     */
+    public function tags(string $action, string $space, array $entries): array
+    {
+        return $this->tags->check($action, EventStore::TYPE, $space, $entries);
+    }
+
+    /**
      * The errors of an event by JSON pointer.
      *
      * @param list<string> $batch Events published together, their slugs are checked among themselves
@@ -466,6 +484,7 @@ final readonly class EventEditor
         }
 
         $this->categories->sync(EventStore::TYPE, $id, $data->categories);
+        $this->tags->sync(EventStore::TYPE, $id, $data->tags);
     }
 
     private function removeRows(string $id): void
@@ -475,6 +494,7 @@ final readonly class EventEditor
         }
 
         $this->categories->clear(EventStore::TYPE, $id);
+        $this->tags->clear(EventStore::TYPE, $id);
         $this->events->delete($id);
     }
 

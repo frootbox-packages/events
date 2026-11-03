@@ -14,13 +14,16 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Frootbox\Core\Category\CategoryLinks;
 use Frootbox\Core\Category\ObjectCategories;
+use Frootbox\Core\Tag\ObjectTags;
+use Frootbox\Core\Tag\TagLinks;
 use Frootbox\Database\Values;
 
 /**
  * The published events for visitors (decision 0227): upcoming ones from
  * the next on, or past ones from the latest back, by language and
  * category, read from the tables. An event is upcoming until it is over.
- * With spaces only the events of these spaces (decision 0232), null for all.
+ * With spaces only the events of these spaces (decision 0232), null for all;
+ * with a tag only the events that have it (decision 0239).
  */
 final readonly class PublishedEvents
 {
@@ -29,6 +32,7 @@ final readonly class PublishedEvents
         private Events $events,
         private EventTranslations $translations,
         private ObjectCategories $categories,
+        private ObjectTags $tags,
     ) {}
 
     /**
@@ -37,9 +41,9 @@ final readonly class PublishedEvents
      *
      * @return list<EventView>
      */
-    public function list(string $language, ?array $categories = null, bool $past = false, int $limit = 10, int $offset = 0, ?DateTimeImmutable $now = null, ?array $spaces = null): array
+    public function list(string $language, ?array $categories = null, bool $past = false, int $limit = 10, int $offset = 0, ?DateTimeImmutable $now = null, ?array $spaces = null, ?string $tag = null): array
     {
-        $query = $this->query($language, $categories, $past, $now, $spaces)
+        $query = $this->query($language, $categories, $past, $now, $spaces, $tag)
             ->select('e.id')
             ->orderBy('e.starts_at', $past ? 'DESC' : 'ASC')
             ->addOrderBy('e.id', $past ? 'DESC' : 'ASC')
@@ -55,9 +59,9 @@ final readonly class PublishedEvents
      * @param list<string>|null $categories
      * @param list<string>|null $spaces
      */
-    public function count(string $language, ?array $categories = null, bool $past = false, ?DateTimeImmutable $now = null, ?array $spaces = null): int
+    public function count(string $language, ?array $categories = null, bool $past = false, ?DateTimeImmutable $now = null, ?array $spaces = null, ?string $tag = null): int
     {
-        $count = $this->query($language, $categories, $past, $now, $spaces)->select('COUNT(*)')->executeQuery()->fetchOne();
+        $count = $this->query($language, $categories, $past, $now, $spaces, $tag)->select('COUNT(*)')->executeQuery()->fetchOne();
 
         return is_numeric($count) ? (int) $count : 0;
     }
@@ -91,7 +95,7 @@ final readonly class PublishedEvents
      * @param list<string>|null $categories
      * @param list<string>|null $spaces
      */
-    private function query(string $language, ?array $categories, bool $past, ?DateTimeImmutable $now, ?array $spaces): QueryBuilder
+    private function query(string $language, ?array $categories, bool $past, ?DateTimeImmutable $now, ?array $spaces, ?string $tag = null): QueryBuilder
     {
         $query = $this->connection->createQueryBuilder()
             ->from(Events::TABLE, 'e')
@@ -114,6 +118,17 @@ final readonly class PublishedEvents
             $query->andWhere($query->expr()->in('e.id', $linked->getSQL()))
                 ->setParameter('type', EventStore::TYPE)
                 ->setParameter('categories', [] === $categories ? [''] : $categories, ArrayParameterType::STRING);
+        }
+
+        if (null !== $tag) {
+            $tagged = $this->connection->createQueryBuilder()
+                ->select('g.target_id')
+                ->from(TagLinks::TABLE, 'g')
+                ->where('g.target_type = :tagType')
+                ->andWhere('g.tag_id = :tag');
+            $query->andWhere($query->expr()->in('e.id', $tagged->getSQL()))
+                ->setParameter('tagType', EventStore::TYPE)
+                ->setParameter('tag', $tag);
         }
 
         return $query;
@@ -143,6 +158,7 @@ final readonly class PublishedEvents
         }
 
         $assigned = $this->categories->of(EventStore::TYPE, $ids);
+        $tags = $this->tags->of(EventStore::TYPE, $ids);
 
         $views = [];
 
@@ -154,7 +170,7 @@ final readonly class PublishedEvents
                 continue;
             }
 
-            $views[] = new EventView($id, $language, $event->startsAt, $event->endsAt, $event->allDay, $text->title, $text->slug, $text->teaser, $text->venue, $event->address, $event->coordinates, $text->text, $event->image, $assigned[$id] ?? []);
+            $views[] = new EventView($id, $language, $event->startsAt, $event->endsAt, $event->allDay, $text->title, $text->slug, $text->teaser, $text->venue, $event->address, $event->coordinates, $text->text, $event->image, $assigned[$id] ?? [], $tags[$id] ?? []);
         }
 
         return $views;

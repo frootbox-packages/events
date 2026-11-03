@@ -61,6 +61,10 @@
 .events-event__text > :first-child { margin-block-start: 0; }
 .events-event__text:empty { display: none; }
 .events-event__map fb-external > iframe, .events-event__map .external__notice { border-radius: var(--radius, 0.5rem); }
+.events-list__tag { margin: 0; }
+.events-tags { display: flex; flex-wrap: wrap; gap: var(--space-2xs, 0.25rem) var(--space-xs, 0.5rem); margin: 0; padding: 0; list-style: none; }
+.events-tags__link { color: var(--color-muted, #57534e); font-size: var(--size-s, 0.875rem); }
+.events-tags__link::before { content: "#" / ""; }
 .events-event__links { display: flex; flex-wrap: wrap; gap: var(--space-xs, 0.5rem) var(--space-m, 1.5rem); margin: 0; padding: 0; list-style: none; }
 @container (max-width: 30rem) {
   .events-item, .events-item:has(.events-item__media) { grid-template-columns: 3.5rem 1fr; }
