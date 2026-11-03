@@ -1,0 +1,29 @@
+{# frootbox
+title: Next events
+description: The next events, e.g. on the start page, with a link to all of them.
+group: teaser
+keywords: [Events, Dates, Calendar, Next, Upcoming, Teasers]
+options:
+  count: { type: number, label: Number of events, default: 3, min: 1, max: 12 }
+fields:
+  title: { type: headline, label: Heading, optional: true, maxLength: 100, placeholder: "Events" }
+#}
+<div class="events-next">
+  {{ heading('title', 0, {class: 'events-next__title'}) }}
+  {% if events %}
+    <ul class="events-next__items">
+      {% for item in events %}
+        <li class="events-item">
+          <p class="events-item__day" aria-hidden="true"><span class="events-item__number">{{ item.day }}</span> <span class="events-item__month">{{ item.month }}</span></p>
+          <div class="events-item__body">
+            {{ heading_text(item.title, 1, {class: 'events-item__title'}, item.url) }}
+            <p class="events-meta"><time datetime="{{ item.start }}">{{ item.when }}</time>{% if item.venue %}<span class="events-meta__sep" aria-hidden="true"> · </span>{{ item.venue }}{% endif %}</p>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+    {% if all %}<p class="events-next__all"><a href="{{ all }}">{{ t('All events') }}</a></p>{% endif %}
+  {% else %}
+    <p class="events-next__empty">{{ t('No upcoming events.') }}</p>
+  {% endif %}
+</div>

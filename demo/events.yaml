@@ -1,0 +1,120 @@
+# Demo events in German and English, for a website of the base theme or
+# a child theme with a start page, e.g. after the demo of Bohnenglück:
+#
+#     php bin/frootbox seed frootbox/events:demo/events.yaml
+#
+# A page "Termine" below the start page lists the events; each one gets
+# its address below it, e.g. /termine/roestkurs. The times are relative
+# to the day of the seed, so three events stay ahead and one is past.
+
+- page.tree: {}
+  as: tree
+
+- frootbox/events/category.create:
+    translations:
+      de: { title: Kurse }
+      en: { title: Courses }
+  as: courses
+- frootbox/events/category.create:
+    translations:
+      de: { title: Verkostungen }
+      en: { title: Tastings }
+  as: tastings
+
+- page.create:
+    layout: frootbox/theme-base/Page
+    parentId: '${tree.0.id}'
+    translations:
+      de:
+        title: Termine
+        content:
+          fields:
+            title: Termine
+            intro: Kurse, Verkostungen und Feste in der Rösterei und im Café.
+          areas:
+            main:
+              - block: frootbox/events/EventList
+      en:
+        title: Events
+        content:
+          fields:
+            title: Events
+            intro: Courses, tastings and parties at the roastery and the café.
+          areas:
+            main:
+              - block: frootbox/events/EventList
+  as: page
+- page.publish: { ids: ['${page.id}'] }
+
+- frootbox/events/event.create:
+    start: '${date:+12 days 10:00}'
+    end: '${date:+12 days 14:00}'
+    address: Bahrenfelder Straße 80, 22765 Hamburg
+    coordinates: '53.5562, 9.9285'
+    categories: ['${courses.id}']
+    translations:
+      de:
+        title: Röstkurs
+        venue: Rösterei
+        teaser: Vier Stunden an der Röstmaschine, mit eigener Charge zum Mitnehmen.
+        text:
+          type: doc
+          content:
+            - { type: paragraph, content: [{ type: text, text: 'Wir zeigen, wie aus grünen Bohnen Kaffee wird: Temperatur, Zeit und der erste Crack. Acht Plätze, Anmeldung im Laden.' }] }
+      en:
+        title: Roasting course
+        venue: Roastery
+        teaser: Four hours at the roaster, with a batch of your own to take home.
+        text:
+          type: doc
+          content:
+            - { type: paragraph, content: [{ type: text, text: 'We show how green beans become coffee: temperature, time and the first crack. Eight places, sign up in the shop.' }] }
+  as: course
+- frootbox/events/event.create:
+    start: '${date:+19 days 18:00}'
+    end: '${date:+19 days 20:00}'
+    address: Hafenstraße 12, 20457 Hamburg
+    coordinates: '53.5444, 9.9663'
+    categories: ['${tastings.id}']
+    translations:
+      de:
+        title: Verkostung neuer Sorten
+        venue: Café am Hafen
+        teaser: Fünf Kaffees der neuen Ernte, nebeneinander geschlürft.
+      en:
+        title: Tasting of new coffees
+        venue: Café by the harbour
+        teaser: Five coffees of the new harvest, slurped side by side.
+  as: tasting
+- frootbox/events/event.create:
+    start: '${date:+40 days}'
+    end: '${date:+41 days}'
+    allDay: true
+    address: Bahrenfelder Straße 80, 22765 Hamburg
+    coordinates: '53.5562, 9.9285'
+    translations:
+      de:
+        title: Tage der offenen Rösterei
+        venue: Rösterei
+        teaser: Zwei Tage lang schauen alle hinter die Kulissen, mit Kaffee und Kuchen.
+      en:
+        title: Open roastery days
+        venue: Roastery
+        teaser: For two days everyone looks behind the scenes, with coffee and cake.
+  as: open
+- frootbox/events/event.create:
+    start: '${date:-20 days 15:00}'
+    end: '${date:-20 days 17:00}'
+    address: Hafenstraße 12, 20457 Hamburg
+    categories: ['${courses.id}']
+    translations:
+      de:
+        title: Latte-Art-Workshop
+        venue: Café am Hafen
+        teaser: Herzen, Tulpen und Rosetten in den Milchschaum gießen.
+      en:
+        title: Latte art workshop
+        venue: Café by the harbour
+        teaser: Pouring hearts, tulips and rosettas into the milk foam.
+  as: latte
+- frootbox/events/event.publish: { ids: ['${course.id}', '${tasting.id}', '${open.id}', '${latte.id}'] }

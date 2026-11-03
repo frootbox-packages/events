@@ -1,0 +1,39 @@
+{
+    "name": "frootbox/events",
+    "description": "Events for the Frootbox CMS: dates with place and drafts, categories, upcoming and past events with an address for each, the next events as teasers and a calendar file",
+    "type": "frootbox-extension",
+    "license": "MIT",
+    "keywords": [
+        "cms",
+        "frootbox",
+        "events",
+        "calendar"
+    ],
+    "require": {
+        "php": ">=8.5",
+        "frootbox/core": "^0.1",
+        "frootbox/database": "^0.1",
+        "frootbox/rich-text": "^0.1",
+        "psr/http-message": "^2.0",
+        "psr/http-server-handler": "^1.0"
+    },
+    "suggest": {
+        "frootbox/backend": "Screens for the events and categories"
+    },
+    "autoload": {
+        "psr-4": {
+            "Frootbox\\Events\\": "src/",
+            "Frootbox\\Events\\Migrations\\": "migrations/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Frootbox\\Events\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "0.1.x-dev"
+        }
+    }
+}

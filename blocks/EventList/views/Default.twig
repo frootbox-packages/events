@@ -1,0 +1,80 @@
+{# frootbox
+title: Events
+description: The upcoming events from the next one on, page by page and by category, and the past ones on request. Each event gets its own address below the first page with this block; there the block shows the event with its place, a map and a file for the calendar.
+group: list
+keywords: [Events, Dates, Calendar, Courses, Agenda, Program]
+query: [page, category, past]
+options:
+  perPage: { type: number, label: Events per page, default: 10, min: 1, max: 50 }
+  images: { type: boolean, label: Images in the list, default: false }
+  categories: { type: boolean, label: Filter by category, default: true }
+  past: { type: boolean, label: Link to past events, default: true }
+  map: { type: choice, label: Map of the place, choices: { openstreetmap: OpenStreetMap, google-maps: Google Maps, none: Without a map }, default: openstreetmap }
+fields:
+  title: { type: headline, label: Heading, optional: true, maxLength: 100, placeholder: "Events" }
+#}
+{% if event is defined %}
+  {% set map = options.map == 'none' or not event.coordinates ? '' : map_embed({provider: options.map, coordinates: event.coordinates, address: event.address, title: t('Map') ~ ': ' ~ (event.venue ?: event.title)}) %}
+  <article class="events-event">
+    <header class="events-event__head">
+      {% if event.categories %}
+        <p class="events-meta">
+          {%- for category in event.categories %}{% if not loop.first %}<span class="events-meta__sep" aria-hidden="true"> · </span>{% endif %}<a href="{{ category.href }}">{{ category.title }}</a>{% endfor -%}
+        </p>
+      {% endif %}
+      {{ heading_text(event.title, 0, {class: 'events-event__title'}) }}
+      <p class="events-event__when"><time datetime="{{ event.start }}">{{ event.when }}</time></p>
+      {% if event.venue or event.address %}
+        <p class="events-event__place">{{ event.venue }}{% if event.venue and event.address %}<br>{% endif %}{{ event.address }}</p>
+      {% endif %}
+      {% if event.teaser %}<p class="events-event__teaser">{{ event.teaser }}</p>{% endif %}
+    </header>
+    {% if event.image %}<div class="events-event__media">{{ event.image }}</div>{% endif %}
+    <div class="events-event__text">{{ event.text }}</div>
+    {% if map %}<div class="events-event__map">{{ map }}</div>{% endif %}
+    <ul class="events-event__links">
+      <li><a href="{{ event.calendar }}" download>{{ t('Add to calendar') }}</a></li>
+      {% if back %}<li><a href="{{ back }}">{{ t('All events') }}</a></li>{% endif %}
+    </ul>
+    <script type="application/ld+json">{{ event.data }}</script>
+  </article>
+{% else %}
+  <div class="events-list">
+    {{ heading('title', 0, {class: 'events-list__title'}) }}
+    {% if filters %}
+      <nav class="events-filter" aria-label="{{ t('Categories') }}">
+        <ul class="events-filter__list">
+          {% for filter in filters %}
+            <li><a class="events-filter__link" href="{{ filter.href }}"{% if filter.current %} aria-current="page"{% endif %}>{{ filter.title ?? t('All') }}</a></li>
+          {% endfor %}
+        </ul>
+      </nav>
+    {% endif %}
+    {% if past %}<p class="events-list__status">{{ t('Past events, the latest first.') }}</p>{% endif %}
+    {% if events %}
+      <ul class="events-list__items">
+        {% for item in events %}
+          <li class="events-item">
+            <p class="events-item__day" aria-hidden="true"><span class="events-item__number">{{ item.day }}</span> <span class="events-item__month">{{ item.month }}</span></p>
+            <div class="events-item__body">
+              {{ heading_text(item.title, 1, {class: 'events-item__title'}, item.url) }}
+              <p class="events-meta"><time datetime="{{ item.start }}">{{ item.when }}</time>{% if item.venue %}<span class="events-meta__sep" aria-hidden="true"> · </span>{{ item.venue }}{% endif %}</p>
+              {% if item.teaser %}<p class="events-item__text">{{ item.teaser }}</p>{% endif %}
+            </div>
+            {% if item.image %}<div class="events-item__media">{{ item.image }}</div>{% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="events-list__empty">{{ filtered ? t('No events match this choice.') : (past ? t('No past events.') : t('No upcoming events.')) }}</p>
+    {% endif %}
+    {% if pagination.pages > 1 %}
+      <nav class="events-pages" aria-label="{{ t('Pages') }}">
+        {% if pagination.previous %}<a class="events-pages__link" href="{{ pagination.previous }}" rel="prev">{{ t('Previous page') }}</a>{% endif %}
+        <span class="events-pages__status">{{ t('Page {page} of {pages}', {page: pagination.page, pages: pagination.pages}) }}</span>
+        {% if pagination.next %}<a class="events-pages__link" href="{{ pagination.next }}" rel="next">{{ t('Next page') }}</a>{% endif %}
+      </nav>
+    {% endif %}
+    {% if switch %}<p class="events-list__switch"><a href="{{ switch }}">{{ past ? t('Upcoming events') : t('Past events') }}</a></p>{% endif %}
+  </div>
+{% endif %}

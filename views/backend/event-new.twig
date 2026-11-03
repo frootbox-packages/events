@@ -1,0 +1,26 @@
+{#- A new event as a draft (decision 0220). -#}
+{% extends '@backend/layout.twig' %}
+{% import '@backend/ui.twig' as ui %}
+
+{% block title %}{{ t('New event') }}{% endblock %}
+
+{% block content %}
+<div class="fb-stack fb-stack--lg">
+    <header class="fb-page-header">
+        <div class="fb-page-header__text">
+            <p class="fb-muted"><a href="{{ path('frootbox.events.events') }}">{{ t('Events') }}</a></p>
+            <h1 class="fb-heading-1">{{ t('New event') }}</h1>
+        </div>
+    </header>
+
+    <fb-form action="frootbox/events/event.create" next="{{ path('frootbox.events.events') }}/{id}" done="{{ t('The event is saved as a draft.') }}">
+        <form class="fb-card fb-card--padded fb-stack" novalidate>
+            {% include '@frootbox/events/backend/fields.twig' with {language: language, translation: null, slug: false, data: null, image: null, image_value: null, categories: categories, chosen: [], editable: true} only %}
+            <div class="fb-form__actions">
+                {{ ui.button({label: t('Save as a draft'), type: 'submit'}) }}
+                {{ ui.button({label: t('Cancel'), variant: 'ghost', href: path('frootbox.events.events')}) }}
+            </div>
+        </form>
+    </fb-form>
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{#- The fields of an event in one language plus time, place, image and categories (decisions 0220, 0227). -#}
+{% import '@backend/ui.twig' as ui %}
+{% set code = language.code %}
+{% set dir = language.direction.value %}
+{% set prefix = 'translations.' ~ code ~ '.' %}
+{{ ui.field({label: t('Title'), name: prefix ~ 'title', id: 'event-title', value: translation.title ?? '', required: true, disabled: not editable, attrs: {lang: code, dir: dir, maxlength: 300}}) }}
+{% if slug %}
+{{ ui.field({label: t('Address'), name: prefix ~ 'slug', id: 'event-slug', value: translation.slug ?? '', disabled: not editable, attrs: {dir: 'ltr', maxlength: 100}, hint: t('The last part of the address of the event. If it changes, the old one redirects to the new one.')}) }}
+{% endif %}
+{{ ui.field({label: t('Teaser'), name: prefix ~ 'teaser', id: 'event-teaser', value: translation.teaser ?? '', multiline: true, optional: true, disabled: not editable, hint: t('A few sentences for the list and for search engines.'), attrs: {lang: code, dir: dir, rows: 3}}) }}
+{{ ui.field({label: t('Venue'), name: prefix ~ 'venue', id: 'event-venue', value: translation.venue ?? '', optional: true, disabled: not editable, hint: t('Where it takes place, e.g. "Roastery".'), attrs: {lang: code, dir: dir, maxlength: 200}}) }}
+{{ ui.richtext({label: t('Text'), name: prefix ~ 'text', id: 'event-text', value: translation.text ?? null, optional: true, disabled: not editable, lang: code, dir: dir}) }}
+{{ ui.field({label: t('Begins'), name: 'start', id: 'event-start', type: 'datetime-local', value: data ? data.start|date('Y-m-d\\TH:i') : '', required: true, disabled: not editable, attrs: {'data-type': 'datetime', 'data-value': data ? data.start|date('c') : null}}) }}
+{{ ui.field({label: t('Ends'), name: 'end', id: 'event-end', type: 'datetime-local', value: data and data.end ? data.end|date('Y-m-d\\TH:i') : '', optional: true, disabled: not editable, hint: t('Left empty if the end is open.'), attrs: {'data-type': 'datetime', 'data-value': data and data.end ? data.end|date('c') : null}}) }}
+{{ ui.check({label: t('All day long'), name: 'allDay', id: 'event-all-day', checked: data ? data.allDay : false, disabled: not editable, hint: t('Only the days count, the times are not shown.')}) }}
+{{ ui.field({label: t('Street and town'), name: 'address', id: 'event-address', value: data ? data.address : '', optional: true, disabled: not editable, hint: t('In one line, e.g. "Hafenstraße 12, 20457 Hamburg".'), attrs: {maxlength: 300}}) }}
+{{ ui.field({label: t('Coordinates'), name: 'coordinates', id: 'event-coordinates', value: data ? data.coordinates : '', optional: true, disabled: not editable, hint: t('Latitude and longitude for the map, e.g. "53.5444, 9.9663". Copy them from a map.'), attrs: {dir: 'ltr', maxlength: 40, autocomplete: 'off'}}) }}
+{{ ui.image({label: t('Image'), name: 'image', id: 'event-image', value: image_value, preview: image.preview ?? null, file: image.file ?? null, optional: true, disabled: not editable}) }}
+{% if categories is not empty %}
+<fieldset class="fb-fieldset">
+    <legend class="fb-fieldset__legend">{{ t('Categories') }} <span class="fb-label__optional">({{ t('optional') }})</span></legend>
+    {% for category in categories %}
+        {{ ui.check({label: category.title, name: 'categories[]', id: 'event-category-' ~ category.id, value: category.id, checked: category.id in chosen, disabled: not editable}) }}
+    {% endfor %}
+</fieldset>
+{% endif %}

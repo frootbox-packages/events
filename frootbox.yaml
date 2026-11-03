@@ -1,0 +1,3 @@
+title: Events
+description: Events with time, place, drafts and categories, a list of upcoming and past events with an address for each, the next events as teasers and a calendar file
+extension: Frootbox\Events\EventsExtension
