@@ -14,14 +14,17 @@ use Frootbox\Core\Action\AsAction;
 use Frootbox\Core\Action\Schema\Description;
 use Frootbox\Core\Action\Schema\Length;
 use Frootbox\Core\Action\Schema\ListOf;
+use Frootbox\Core\Auth\Scope;
+use Frootbox\Core\Auth\Scoped;
 use Frootbox\Core\Plugin\Space;
+use Frootbox\Core\Plugin\SpaceScopes;
 use Frootbox\Database\Ulid;
 
 /**
  * @implements Action<EventDetails>
  */
 #[AsAction('frootbox/events/event.create', 'Creates an event as a draft; frootbox/events/event.publish puts it online')]
-final readonly class CreateEvent implements Action
+final readonly class CreateEvent implements Action, Scoped
 {
     /**
      * @param array<mixed>      $translations
@@ -58,6 +61,16 @@ final readonly class CreateEvent implements Action
         #[Description('Further fields the views of the theme add, by name; a text one per language, e.g. {"subtitle": {"de": "…"}}, null removes one; see object.fields')]
         public array $fields = [],
     ) {}
+
+    /**
+     * The space it is created in (decision 0245).
+     *
+     * @return list<Scope>
+     */
+    public function scopes(): array
+    {
+        return [SpaceScopes::space(EventStore::TYPE, $this->space)];
+    }
 
     public function handle(EventEditor $editor): EventDetails
     {

@@ -11,12 +11,15 @@ namespace Frootbox\Events\Event;
 use Frootbox\Core\Action\Action;
 use Frootbox\Core\Action\AsAction;
 use Frootbox\Core\Action\Schema\ListOf;
+use Frootbox\Core\Auth\Scope;
+use Frootbox\Core\Auth\Scoped;
+use Frootbox\Core\Plugin\SpaceScopes;
 
 /**
  * @implements Action<list<EventDetails>>
  */
 #[AsAction('frootbox/events/event.publish', 'Publishes the drafts of one or more events')]
-final readonly class PublishEvents implements Action
+final readonly class PublishEvents implements Action, Scoped
 {
     /**
      * @param list<string> $ids
@@ -25,6 +28,16 @@ final readonly class PublishEvents implements Action
         #[ListOf('string')]
         public array $ids,
     ) {}
+
+    /**
+     * Each object within its space (decision 0245).
+     *
+     * @return list<Scope>
+     */
+    public function scopes(): array
+    {
+        return array_map(static fn(string $id): Scope => SpaceScopes::object(EventStore::TYPE, $id), $this->ids);
+    }
 
     /**
      * @return list<EventDetails>

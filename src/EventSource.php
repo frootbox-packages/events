@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Frootbox\Events;
 
+use Frootbox\Core\Plugin\SpaceScopes;
 use Frootbox\Core\Revision\Revisions;
 use Frootbox\Core\Search\AsSearchSource;
 use Frootbox\Core\Search\PublishedEntry;
@@ -59,6 +60,9 @@ final readonly class EventSource implements PublishedSource
                     text: implode("\n", array_filter([$text->teaser, $text->venue, $this->richText->toText($text->text)], static fn(string $part): bool => '' !== trim($part))),
                     permission: 'frootbox/events/event.show',
                     language: $language,
+                    // Only for roles within its space (decision 0245).
+                    scopeKind: SpaceScopes::KIND,
+                    scopeId: SpaceScopes::object(EventStore::TYPE, $id)->id,
                 );
             }
         }

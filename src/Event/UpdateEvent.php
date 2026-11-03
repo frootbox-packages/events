@@ -15,13 +15,16 @@ use Frootbox\Core\Action\Schema\Description;
 use Frootbox\Core\Action\Schema\Length;
 use Frootbox\Core\Action\Schema\ListOf;
 use Frootbox\Core\Action\Schema\Pattern;
+use Frootbox\Core\Auth\Scope;
+use Frootbox\Core\Auth\Scoped;
+use Frootbox\Core\Plugin\SpaceScopes;
 use Frootbox\Database\Ulid;
 
 /**
  * @implements Action<EventDetails>
  */
 #[AsAction('frootbox/events/event.update', 'Changes the draft of an event; what is left out stays as it is')]
-final readonly class UpdateEvent implements Action
+final readonly class UpdateEvent implements Action, Scoped
 {
     /**
      * @param array<mixed>|null $translations
@@ -56,6 +59,23 @@ final readonly class UpdateEvent implements Action
         #[Description('The space to move it to; with publishing its address moves below the page of that space and the old one redirects')]
         public ?string $space = null,
     ) {}
+
+    /**
+     * The object and, when it moves, the new space (decision 0245).
+     *
+     * @return list<Scope>
+     */
+    public function scopes(): array
+    {
+        $scopes = [SpaceScopes::object(EventStore::TYPE, $this->id)];
+
+        // Moving needs the rights in the new space too (decision 0244).
+        if (null !== $this->space) {
+            $scopes[] = SpaceScopes::space(EventStore::TYPE, $this->space);
+        }
+
+        return $scopes;
+    }
 
     public function handle(EventEditor $editor, EventStore $store): EventDetails
     {
