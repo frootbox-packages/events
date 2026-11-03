@@ -10,18 +10,21 @@ namespace Frootbox\Events;
 
 use Frootbox\Core\Revision\Revisions;
 use Frootbox\Core\Search\AsSearchSource;
+use Frootbox\Core\Search\PublishedEntry;
+use Frootbox\Core\Search\PublishedSource;
 use Frootbox\Core\Search\SearchEntry;
-use Frootbox\Core\Search\SearchSource;
+use Frootbox\Core\Url\Target;
 use Frootbox\Database\EntityNotFoundException;
 use Frootbox\Events\Event\EventStore;
 use Frootbox\RichText\RichText;
 
 /**
  * Events in the search of the backend, as editors see them:
- * drafts first (decision 0217).
+ * drafts first (decision 0217); on the website the published ones
+ * (decision 0228).
  */
 #[AsSearchSource('frootbox/events/event', 'Events')]
-final readonly class EventSource implements SearchSource
+final readonly class EventSource implements PublishedSource
 {
     public function __construct(
         private EventStore $store,
@@ -56,6 +59,24 @@ final readonly class EventSource implements SearchSource
                     text: implode("\n", array_filter([$text->teaser, $text->venue, $this->richText->toText($text->text)], static fn(string $part): bool => '' !== trim($part))),
                     permission: 'frootbox/events/event.show',
                     language: $language,
+                );
+            }
+        }
+    }
+
+    /**
+     * The published version for the search on the website (decision 0228).
+     */
+    public function published(array $items): iterable
+    {
+        foreach ($items as $id) {
+            foreach ($this->store->published($id)->translations ?? [] as $language => $text) {
+                yield new PublishedEntry(
+                    $id,
+                    $language,
+                    $text->title,
+                    implode("\n", array_filter([$text->teaser, $text->venue, $this->richText->toText($text->text)], static fn(string $part): bool => '' !== trim($part))),
+                    Target::parse(EventStore::target($id)),
                 );
             }
         }

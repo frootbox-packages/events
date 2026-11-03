@@ -34,8 +34,10 @@ use Frootbox\Events\Event\ScheduleEvent;
 use Frootbox\Events\Event\ShowEvent;
 use Frootbox\Events\Event\UnpublishEvent;
 use Frootbox\Events\Event\UpdateEvent;
+use Frootbox\Events\EventSource;
 use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(EventSource::class)]
 #[CoversClass(EventEditor::class)]
 #[CoversClass(EventStore::class)]
 #[CoversClass(CategoryEditor::class)]
@@ -219,6 +221,11 @@ final class EventsTest extends EventsTestCase
         self::assertSame(['frootbox/events/event'], array_values(array_unique(array_map(static fn($hit): string => $hit->source, $hits))));
         self::assertSame($id, $hits[0]->item);
         self::assertSame('/neue-sorten', $this->get(Urls::class)->path(EventStore::target($id), 'de'));
+
+        $published = iterator_to_array($this->get(EventSource::class)->published([$id]), false);
+        self::assertCount(1, $published, 'The published version, for the search on the website.');
+        self::assertSame(['Neue Sorten', 'de', EventStore::target($id)], [$published[0]->title, $published[0]->language, (string) $published[0]->target]);
+        self::assertStringContainsString('Geröstet in Hamburg', $published[0]->text);
 
         $editor = $this->get(Roles::class)->fetchOne(['where' => ['name' => 'editor']]);
         self::assertNotNull($editor);
