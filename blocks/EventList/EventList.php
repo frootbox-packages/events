@@ -11,6 +11,7 @@ namespace Frootbox\Events\Blocks;
 use Frootbox\Core\Category\ObjectCategories;
 use Frootbox\Core\Component\BlockContext;
 use Frootbox\Core\Component\BlockController;
+use Frootbox\Core\Plugin\CategoryPages;
 use Frootbox\Core\Plugin\Space;
 use Frootbox\Core\Tag\ObjectTags;
 use Frootbox\Core\Url\Urls;
@@ -34,6 +35,7 @@ final readonly class EventList implements BlockController
         private ObjectTags $tags,
         private EventRendering $rendering,
         private Urls $urls,
+        private CategoryPages $pages,
     ) {}
 
     public function data(BlockContext $context): array
@@ -47,13 +49,15 @@ final readonly class EventList implements BlockController
             $event = $this->events->find($subpage->target->id, $language);
 
             if (null !== $event) {
-                return ['event' => $this->withLinks($this->rendering->detail($event, $context->language), $base), 'back' => $base];
+                return ['event' => $this->withLinks($this->rendering->detail($event, $context->language), $base, $context), 'back' => $base];
             }
         }
 
-        // A category counts with all below it (decision 0233).
-        $slug = self::text($context->query('category'));
-        [$category, $chosen] = (null === $slug ? null : $this->categories->bySlug(EventStore::TYPE, $language, $slug)) ?? [null, null];
+        // A category counts with all below it (decision 0233); on the page of a category it is that one (decision 0243).
+        $own = $this->pages->current($context);
+        $slug = null === $own ? self::text($context->query('category')) : null;
+        [$category, $chosen] = $own ?? (null === $slug ? null : $this->categories->bySlug(EventStore::TYPE, $language, $slug)) ?? [null, null];
+        $here = null === $own || null === $subpage ? $base : $this->urls->href($subpage->target, $context->language) ?? $base;
         // Like a category, an unknown tag filters nothing.
         $tagSlug = self::text($context->query('tag'));
         $tag = null === $tagSlug ? null : $this->tags->bySlug($language, $tagSlug);
@@ -64,8 +68,8 @@ final readonly class EventList implements BlockController
         $pages = max(1, (int) ceil($total / $perPage));
         $page = min($pages, max(1, (int) ($context->query('page') ?? 1)));
         $given = static fn(?string $value): bool => null !== $value;
-        $filter = array_filter(['category' => $category?->slug($language), 'tag' => $shown['slug'] ?? null, 'past' => $past ? '1' : null], $given);
-        $link = static fn(array $query): string => $base . ([] === $query ? '' : '?' . http_build_query($query));
+        $filter = array_filter(['category' => null === $own ? $category?->slug($language) : null, 'tag' => $shown['slug'] ?? null, 'past' => $past ? '1' : null], $given);
+        $link = static fn(array $query, ?string $to = null): string => ($to ?? $here) . ([] === $query ? '' : '?' . http_build_query($query));
         $images = true === ($context->options['images'] ?? false);
         $filters = [];
 
@@ -75,7 +79,8 @@ final readonly class EventList implements BlockController
                 $title = $item->title($language);
 
                 if (null !== $itemSlug && null !== $title) {
-                    $filters[] = ['title' => $title, 'href' => $link(array_filter(['category' => $itemSlug, 'past' => $filter['past'] ?? null], $given)), 'current' => $item->id === $category?->id, 'depth' => $item->depth];
+                    $address = $this->pages->href($context, $item->id);
+                    $filters[] = ['title' => $title, 'href' => $link(array_filter(['category' => null === $address ? $itemSlug : null, 'past' => $filter['past'] ?? null], $given), $address ?? $base), 'current' => $item->id === $category?->id, 'depth' => $item->depth];
                 }
             }
         }
@@ -83,8 +88,9 @@ final readonly class EventList implements BlockController
         $categoryOnly = array_filter(['category' => $filter['category'] ?? null, 'tag' => $filter['tag'] ?? null], $given);
 
         return [
-            'events' => array_map(fn(EventView $event): array => $this->withLinks($this->rendering->teaser($event, $context->language, $images), $base), $this->events->list($language, $chosen, $past, $perPage, ($page - 1) * $perPage, spaces: $spaces, tag: $tag?->id)),
-            'filters' => [] === $filters ? [] : [['title' => null, 'href' => $link(array_filter(['past' => $filter['past'] ?? null], $given)), 'current' => null === $category], ...$filters],
+            'events' => array_map(fn(EventView $event): array => $this->withLinks($this->rendering->teaser($event, $context->language, $images), $base, $context), $this->events->list($language, $chosen, $past, $perPage, ($page - 1) * $perPage, spaces: $spaces, tag: $tag?->id)),
+            'filters' => [] === $filters ? [] : [['title' => null, 'href' => $link(array_filter(['past' => $filter['past'] ?? null], $given), $base), 'current' => null === $category], ...$filters],
+            'category' => null === $own ? null : ['title' => $own[0]->titleIn([$language]), 'description' => $own[0]->description($language)],
             'filtered' => null !== $category || null !== $shown,
             'tag' => null === $shown ? null : ['label' => $shown['label'], 'all' => $link(array_diff_key($filter, ['tag' => true]))],
             'past' => $past,
@@ -101,19 +107,20 @@ final readonly class EventList implements BlockController
 
     /**
      * The categories and tags of an event link to the list filtered by
-     * them.
+     * them, a category to its page if it has one (decision 0243).
      *
      * @param array<string, mixed> $event
      *
      * @return array<string, mixed>
      */
-    private function withLinks(array $event, string $base): array
+    private function withLinks(array $event, string $base, BlockContext $context): array
     {
         $categories = [];
 
         foreach (\is_array($event['categories'] ?? null) ? $event['categories'] : [] as $category) {
             if (\is_array($category) && \is_string($category['slug'] ?? null)) {
-                $categories[] = [...$category, 'href' => $base . '?' . http_build_query(['category' => $category['slug']])];
+                $id = \is_string($category['id'] ?? null) ? $category['id'] : null;
+                $categories[] = [...$category, 'href' => (null === $id ? null : $this->pages->href($context, $id)) ?? $base . '?' . http_build_query(['category' => $category['slug']])];
             }
         }
 

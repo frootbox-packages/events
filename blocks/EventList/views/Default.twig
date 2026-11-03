@@ -44,7 +44,12 @@ fields:
   </article>
 {% else %}
   <div class="events-list">
-    {{ heading('title', 0, {class: 'events-list__title'}) }}
+    {% if category %}
+      {{ heading_text(category.title, 0, {class: 'events-list__title'}) }}
+      {% if category.description %}<p class="events-list__intro">{{ category.description }}</p>{% endif %}
+    {% else %}
+      {{ heading('title', 0, {class: 'events-list__title'}) }}
+    {% endif %}
     {% if filters %}
       <nav class="events-filter" aria-label="{{ t('Categories') }}">
         <ul class="events-filter__list">

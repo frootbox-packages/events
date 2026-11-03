@@ -16,6 +16,7 @@ use Frootbox\Core\Category\CreateCategory;
 use Frootbox\Core\Http\Exception\HttpException;
 use Frootbox\Core\Page\PublishPages;
 use Frootbox\Core\Page\UpdatePage;
+use Frootbox\Core\Plugin\AssignPlugin;
 use Frootbox\Core\Plugin\CreateSpace;
 use Frootbox\Core\ProjectPaths;
 use Frootbox\Core\Schedule\ScheduleRan;
@@ -109,6 +110,27 @@ final class WebsiteTest extends EventsTestCase
         self::assertStringContainsString('<a class="events-filter__link" href="/termine">Alle</a>', $html);
         self::assertStringContainsString('<a href="/termine?category=kurse&amp;past=1">Vergangene Termine</a>', $html, 'The past ones keep the category.');
         self::assertStringContainsString('Hoffest', $this->html('/termine?category=unbekannt'), 'An unknown category shows all.');
+    }
+
+    public function testCategoriesHavePagesOfTheirOwnWithTheSwitch(): void
+    {
+        $courses = $this->runner()->run(new CreateCategory(EventStore::CATEGORIES, ['de' => ['title' => 'Kurse', 'description' => 'Lernen an der Maschine.']]));
+        $barista = $this->runner()->run(new CreateCategory(EventStore::CATEGORIES, ['de' => ['title' => 'Barista']], $courses->id));
+        $this->event(['de' => ['title' => 'Röstkurs']], categories: [$courses->id]);
+        $this->event(['de' => ['title' => 'Latte Art']], '+30 days 18:00', categories: [$barista->id]);
+        $this->event(['de' => ['title' => 'Hoffest']]);
+        $this->runner()->run(new AssignPlugin($this->events, EventStore::TYPE, categories: true));
+        $this->runner()->run(new PublishPages([$this->events]));
+
+        $html = $this->html('/termine/kurse');
+        self::assertMatchesRegularExpression('~<h1 class="events-list__title">Kurse</h1>~', $html, 'The category owns the h1 (decision 0243).');
+        self::assertStringContainsString('<p class="events-list__intro">Lernen an der Maschine.</p>', $html);
+        self::assertStringContainsString('Latte Art', $html, 'With the ones below it.');
+        self::assertStringNotContainsString('Hoffest', $html);
+        self::assertStringContainsString('<a class="events-filter__link" href="/termine/kurse/barista">Barista</a>', $html);
+        self::assertStringContainsString('<a class="events-filter__link" href="/termine">Alle</a>', $html);
+        self::assertStringContainsString('<a href="/termine/kurse?past=1">Vergangene Termine</a>', $html, 'The past ones stay on the page of the category.');
+        self::assertStringContainsString('href="/termine/kurse/barista">Barista</a>', $this->html('/termine/latte-art'), 'The categories of an event too.');
     }
 
     public function testFiltersByTagsOfAClosedList(): void

@@ -2,6 +2,7 @@
 /* The list of events and an event. Values come from the tokens of the theme, with fallbacks. */
 .events-list { display: flex; flex-direction: column; gap: var(--space-m, 1.5rem); }
 .events-list__title { margin: 0; font-size: var(--size-2xl, 2rem); }
+.events-list__intro { margin: 0; max-inline-size: 65ch; font-size: var(--size-l, 1.25rem); color: var(--color-muted, inherit); }
 .events-list__items { display: flex; flex-direction: column; gap: var(--space-s, 1rem); margin: 0; padding: 0; list-style: none; }
 .events-list__empty, .events-list__status { margin: 0; color: var(--color-muted, #57534e); }
 .events-list__switch { margin: 0; }
