@@ -4,8 +4,7 @@ Events for the Frootbox CMS: dates with time, place, drafts, versions and
 planned publishing, categories, tags, a calendar file for each event and two
 blocks for any theme.
 
-- **Events** (`frootbox/events/EventList`) is the view of the plugin
-  (decision 0232): a page that shows a space of the events lists the
+- **Events** (`frootbox/events/EventList`) is the view of the plugin: a page that shows a space of the events lists the
   upcoming ones at `plugin()` from the next one on, page by page,
   filtered by category (`?category=`) and tag (`?tag=`), and the past
   ones with `?past=1`.
@@ -28,22 +27,20 @@ The calendar file of an event (iCalendar) lives at
 Everything goes through actions, also from the REST API and the AI:
 `frootbox/events/event.create`, `.update`, `.publish`, `.unpublish`,
 `.schedule`, `.discard`, `.delete`, the queries `frootbox/events/event.list`
-and `.show`. Categories are the ones of the core (decision 0233) in the
+and `.show`. Categories are the ones of the core in the
 group `frootbox/events/categories`: `category.create` with that group, `.update`,
 `.move`, `.delete` and `category.list`; the actions take `categories` as
-a list of their ids. Tags are the common stock of the core (decision
-0239): the actions take `tags` as ids, keys or labels, and new words
+a list of their ids. Tags are the common stock of the core: the actions take `tags` as ids, keys or labels, and new words
 become tags unless `config/tags.yaml` closes the list for
 `frootbox/events/event` or the space. The role "editor" gets `frootbox/events/*` on
 installation.
 
-Further fields (decision 0240): a view of the theme declares them under
+Further fields: a view of the theme declares them under
 `object: fields:` in its header, e.g. an override of `EventList`, and
 the actions take them as `fields`; `object.fields` with the type
 `frootbox/events/event` lists them. The form in the backend shows them under
 "More fields". In the editing mode editors change them right on the page
-(`object.update-field`), and the editor bar publishes the event with the page
-(decision 0241).
+(`object.update-field`), and the editor bar publishes the event with the page.
 
 ## In a template
 
@@ -56,6 +53,12 @@ the actions take them as `fields`; `object.fields` with the type
 
 With `frootbox/backend` installed, the screens "Events" and "Categories"
 appear in the sidebar.
+
+## Source and issues
+
+This package is developed in the [Frootbox monorepo](https://github.com/Frootbox/frootbox)
+and mirrored here read-only. Questions, bugs and ideas go there, see the
+[documentation](https://github.com/Frootbox/frootbox/tree/main/documentation).
 
 ## License
 
