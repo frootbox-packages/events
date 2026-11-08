@@ -1,6 +1,6 @@
 {
     "name": "frootbox/events",
-    "description": "Events for the Frootbox CMS: dates with place and drafts, categories, upcoming and past events with an address for each, the next events as teasers and a calendar file",
+    "description": "Events for the Frootbox CMS: dates with place and drafts, categories, upcoming and past events with an address for each, the next events as teasers and a calendar file, and courses with free seats and a booking form from a provider",
     "type": "frootbox-extension",
     "license": "MIT",
     "keywords": [

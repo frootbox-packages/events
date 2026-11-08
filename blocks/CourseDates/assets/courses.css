@@ -1,0 +1,39 @@
+/* SPDX-License-Identifier: MIT */
+/* A course with its dates. Values come from the tokens of the theme, with fallbacks. */
+.events-course { display: flex; flex-direction: column; gap: var(--space-m, 1.5rem); }
+.events-course__title, .events-course__dates-title { margin: 0; }
+.events-course__text:empty { display: none; }
+.events-course__facts { border-collapse: collapse; inline-size: fit-content; }
+.events-course__facts th, .events-course__facts td { padding-block: var(--space-2xs, 0.25rem); padding-inline: 0 var(--space-m, 1.5rem); border-block-end: 1px solid var(--color-line, #e7e5e4); text-align: start; }
+.events-course__facts th { font-weight: 400; color: var(--color-muted, #57534e); }
+.events-dates { display: flex; flex-direction: column; gap: var(--space-s, 1rem); margin: 0; padding: 0; list-style: none; }
+.events-date {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--space-xs, 0.5rem) var(--space-m, 1.5rem);
+  align-items: center;
+  padding: var(--space-s, 1rem);
+  border-radius: var(--radius, 0.5rem);
+  background: var(--color-surface, #f5f5f4);
+}
+.events-date p { margin: 0; }
+.events-date__when time { font-weight: 700; }
+.events-date__place { color: var(--color-muted, #57534e); }
+.events-date__booking { display: flex; flex-wrap: wrap; gap: var(--space-xs, 0.5rem); align-items: center; justify-content: end; }
+.events-date__seats { color: var(--color-muted, #57534e); font-size: var(--size-s, 0.875rem); }
+.events-date__full { font-weight: 700; }
+.events-date--closed { opacity: 0.75; }
+.events-hint { margin: 0; color: var(--color-muted, #57534e); }
+.events-button {
+  display: inline-block;
+  padding: var(--space-2xs, 0.25rem) var(--space-s, 1rem);
+  border: 0;
+  border-radius: var(--radius-button, 999px);
+  background: var(--color-primary, #1d4ed8);
+  color: var(--color-primary-contrast, #fff);
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+.events-button:hover, .events-button:focus-visible { text-decoration: underline; }
+.events-visually-hidden { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

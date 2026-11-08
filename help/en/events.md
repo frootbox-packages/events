@@ -57,3 +57,24 @@ Tick the tags that fit or type new words, separated by commas. The
 event shows its tags below the text, and each leads to the list of all
 events with that tag. A teaser of the next events can show only those
 with one tag.
+
+## Courses with booking
+
+Courses whose seats and bookings live at a provider, such as Avaro,
+come in with a module of the provider. They are not events of this
+screen: dates, prices and free seats are always the current ones of
+the provider, and bookings go straight there. Three blocks show them:
+
+- **Course with dates** on the page of a course: choose the course,
+  write the text, and the block adds the price per attendee, the least
+  and most attendees and the coming dates with free seats.
+- **Courses soon** shows the next dates with free seats, e.g. on the
+  start page.
+- **Course booking** is the form. Put it on a page of its own, e.g.
+  "Booking"; the dates link to the first page with it. A visitor fills
+  in their details, the attendees and the questions of the course,
+  agrees to the legal texts and books. The confirmation comes from the
+  provider by email.
+
+Free seats on the website may lag up to a minute behind; the provider
+checks them again for each booking.

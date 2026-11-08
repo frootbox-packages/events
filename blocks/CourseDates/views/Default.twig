@@ -1,0 +1,58 @@
+{# frootbox
+title: Course with dates
+description: A course of the provider of courses with price per attendee, the least and most attendees and its coming dates with free seats and a link to the booking.
+group: list
+keywords: [Courses, Dates, Booking, Seats, Training]
+options:
+  course: { type: choice, label: Course, source: frootbox/events/course.choices, default: '' }
+  facts: { type: boolean, label: Price and attendees, default: true }
+  count: { type: number, label: Number of dates, default: 6, min: 1, max: 20 }
+fields:
+  title: { type: headline, label: Heading, optional: true, maxLength: 100, placeholder: "Course" }
+  text: { type: richtext, label: Text, optional: true }
+  datesTitle: { type: headline, label: Heading of the dates, optional: true, maxLength: 100, placeholder: "Coming dates" }
+#}
+<section class="events-course">
+  {{ heading('title', 0, {class: 'events-course__title'}) }}
+  <div class="events-course__text">{{ field('text') }}</div>
+  {% if state == 'none' %}
+    {% if editing %}<p class="events-hint">{{ t('No provider of courses is connected yet.') }}</p>{% endif %}
+  {% elseif state == 'error' %}
+    <p class="events-hint">{{ t('The dates cannot be loaded right now.') }}</p>
+  {% else %}
+    {% if facts and course %}
+      <table class="events-course__facts">
+        <tbody>
+          <tr><th scope="row">{{ t('Price per attendee') }}</th><td>{{ course.price ?? (course.free ? t('Free of charge') : '–') }}</td></tr>
+          {% if course.min %}<tr><th scope="row">{{ t('Attendees at least') }}</th><td>{{ course.min }}</td></tr>{% endif %}
+          {% if course.max %}<tr><th scope="row">{{ t('Attendees at most') }}</th><td>{{ course.max }}</td></tr>{% endif %}
+        </tbody>
+      </table>
+    {% endif %}
+    {{ heading('datesTitle', 1, {class: 'events-course__dates-title'}) }}
+    {% if dates %}
+      <ul class="events-dates">
+        {% for date in dates %}
+          <li class="events-date{% if not date.bookable %} events-date--closed{% endif %}">
+            <p class="events-date__when"><time datetime="{{ date.start }}">{{ date.day }}</time><br>{% if date.multiDay %}{{ t('until {day}', {day: date.until}) }}<br>{% endif %}{{ date.time }}</p>
+            <p class="events-date__place">{% if date.online %}{{ t('Online') }}{% else %}{{ date.venue }}{% if date.venue and date.address %}<br>{% endif %}{{ date.address }}{% endif %}</p>
+            <p class="events-date__booking">
+              {% if date.bookable %}
+                {% if date.seats is not null %}<span class="events-date__seats">{{ date.seats == 1 ? t('1 seat left') : t('{count} seats left', {count: date.seats}) }}</span>{% endif %}
+                {% if date.url %}<a class="events-button" href="{{ date.url }}">{{ t('Book') }}<span class="events-visually-hidden">: {{ date.course }}, {{ date.day }}</span></a>{% endif %}
+              {% elseif date.state == 'soldOut' %}
+                <span class="events-date__full">{{ t('Sold out') }}</span>
+              {% elseif date.state == 'notYetOpen' %}
+                <span class="events-date__full">{{ t('Booking opens soon') }}</span>
+              {% else %}
+                <span class="events-date__full">{{ t('Booking closed') }}</span>
+              {% endif %}
+            </p>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="events-hint">{{ t('No dates are planned at the moment.') }}</p>
+    {% endif %}
+  {% endif %}
+</section>

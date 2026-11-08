@@ -56,3 +56,25 @@ Hak die passenden Schlagwörter an oder tipp neue Wörter ein, getrennt
 durch Kommas. Der Termin zeigt seine Schlagwörter unter dem Text, jedes
 führt zur Liste aller Termine damit. Ein Teaser der nächsten Termine
 kann nur die mit einem Schlagwort zeigen.
+
+## Kurse mit Anmeldung
+
+Kurse, deren Plätze und Anmeldungen bei einem Anbieter wie Avaro
+liegen, kommen mit einem Modul des Anbieters dazu. Sie sind keine
+Termine dieses Bildschirms: Termine, Preise und freie Plätze sind
+immer die aktuellen des Anbieters, Anmeldungen gehen direkt dorthin.
+Drei Blöcke zeigen sie:
+
+- **Kurs mit Terminen** auf der Seite eines Kurses: Kurs wählen, Text
+  schreiben, und der Block ergänzt Preis pro Person, mindestens und
+  höchstens Teilnehmer und die kommenden Termine mit freien Plätzen.
+- **Kurstermine in Kürze** zeigt die nächsten Termine mit freien
+  Plätzen, z. B. auf der Startseite.
+- **Kursanmeldung** ist das Formular. Setz es auf eine eigene Seite,
+  z. B. „Anmeldung“; die Termine verlinken auf die erste Seite damit.
+  Besucher geben ihre Angaben, die Teilnehmer und die Fragen des Kurses
+  ein, stimmen den Rechtstexten zu und melden sich an. Die Bestätigung
+  schickt der Anbieter per E-Mail.
+
+Freie Plätze auf der Website können bis zu einer Minute nachhängen; der
+Anbieter prüft sie bei jeder Anmeldung noch einmal.

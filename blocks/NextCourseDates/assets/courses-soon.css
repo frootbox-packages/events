@@ -1,0 +1,44 @@
+/* SPDX-License-Identifier: MIT */
+/* The next dates of the courses. Values come from the tokens of the theme, with fallbacks. */
+.events-soon { display: flex; flex-direction: column; gap: var(--space-m, 1.5rem); }
+.events-soon__title { margin: 0; }
+.events-soon__items { display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: var(--space-s, 1rem); margin: 0; padding: 0; list-style: none; }
+.events-soon__item {
+  display: grid;
+  grid-template-columns: 4rem 1fr;
+  gap: var(--space-xs, 0.5rem) var(--space-s, 1rem);
+  align-content: start;
+  padding: var(--space-s, 1rem);
+  border-radius: var(--radius, 0.5rem);
+  background: var(--color-surface, #f5f5f4);
+}
+.events-soon__item p { margin: 0; }
+.events-soon__day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-block: var(--space-2xs, 0.25rem);
+  border-radius: var(--radius, 0.5rem);
+  background: var(--color-bg, #fff);
+  line-height: 1.1;
+}
+.events-soon__number { font-size: var(--size-xl, 1.5rem); font-weight: 700; }
+.events-soon__month { font-size: var(--size-s, 0.875rem); }
+.events-soon__body { display: flex; flex-direction: column; gap: var(--space-3xs, 0.125rem); min-inline-size: 0; }
+.events-soon__course { margin: 0; font-size: var(--size-m, 1rem); }
+.events-soon__meta, .events-soon__seats { color: var(--color-muted, #57534e); font-size: var(--size-s, 0.875rem); }
+.events-soon__link { grid-column: 1 / -1; }
+.events-hint { margin: 0; color: var(--color-muted, #57534e); }
+.events-button {
+  display: inline-block;
+  padding: var(--space-2xs, 0.25rem) var(--space-s, 1rem);
+  border: 0;
+  border-radius: var(--radius-button, 999px);
+  background: var(--color-primary, #1d4ed8);
+  color: var(--color-primary-contrast, #fff);
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+.events-button:hover, .events-button:focus-visible { text-decoration: underline; }
+.events-visually-hidden { position: absolute; inline-size: 1px; block-size: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }

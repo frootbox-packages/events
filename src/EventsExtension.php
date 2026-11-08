@@ -19,6 +19,12 @@ use Frootbox\Events\Backend\EventHandler;
 use Frootbox\Events\Backend\EventsHandler;
 use Frootbox\Events\Calendar\Calendar;
 use Frootbox\Events\Calendar\CalendarHandler;
+use Frootbox\Events\Courses\BookingForm;
+use Frootbox\Events\Courses\CourseChoices;
+use Frootbox\Events\Courses\ListCourses;
+use Frootbox\Events\Courses\ListDates;
+use Frootbox\Events\Courses\PlaceBooking;
+use Frootbox\Events\Courses\ShowDate;
 use Frootbox\Events\Event\CreateEvent;
 use Frootbox\Events\Event\DeleteEvent;
 use Frootbox\Events\Event\DiscardEvent;
@@ -34,7 +40,8 @@ use Frootbox\Events\Event\UpdateEvent;
 /**
  * Events as a plugin (decisions 0219, 0227, 0232): events with drafts in
  * spaces, their addresses below the page that shows the space, the scheduler, the search, a
- * calendar file for each event and a fresh page cache once one is over.
+ * calendar file for each event and a fresh page cache once one is over;
+ * courses with dates and bookings from a provider (decision 0351).
  * The screens come only with the backend.
  */
 final class EventsExtension implements Extension
@@ -51,6 +58,15 @@ final class EventsExtension implements Extension
         $registry->query(ListEvents::class);
         $registry->query(ShowEvent::class);
         $registry->query(SpaceChoices::class);
+
+        // Courses with bookings from a provider (decision 0351).
+        $registry->settings(EventsSettings::class);
+        $registry->query(ListCourses::class);
+        $registry->query(CourseChoices::class);
+        $registry->query(ListDates::class);
+        $registry->query(ShowDate::class);
+        $registry->action(PlaceBooking::class);
+        $registry->post(BookingForm::ROUTE, BookingForm::class, 'frootbox.events.booking');
 
         $registry->plugin(EventPlugin::class);
         $registry->add(CategoryGroup::class, new CategoryGroup(EventStore::CATEGORIES, 'Categories of the events', [EventStore::TYPE]));

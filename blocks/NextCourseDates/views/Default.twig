@@ -1,0 +1,35 @@
+{# frootbox
+title: Courses soon
+description: The next dates of the courses with free seats, e.g. on the start page, each with the time and a link to the booking.
+group: teaser
+keywords: [Courses, Dates, Booking, Seats, Next, Upcoming]
+options:
+  course: { type: choice, label: Course, source: frootbox/events/course.choices, default: '' }
+  count: { type: number, label: Number of dates, default: 4, min: 1, max: 12 }
+fields:
+  title: { type: headline, label: Heading, optional: true, maxLength: 100, placeholder: "Courses soon" }
+#}
+<div class="events-soon">
+  {{ heading('title', 0, {class: 'events-soon__title'}) }}
+  {% if state == 'none' %}
+    {% if editing %}<p class="events-hint">{{ t('No provider of courses is connected yet.') }}</p>{% endif %}
+  {% elseif state == 'error' %}
+    <p class="events-hint">{{ t('The dates cannot be loaded right now.') }}</p>
+  {% elseif dates %}
+    <ul class="events-soon__items">
+      {% for date in dates %}
+        <li class="events-soon__item">
+          <p class="events-soon__day" aria-hidden="true"><span class="events-soon__number">{{ date.dayNumber }}</span> <span class="events-soon__month">{{ date.month }}</span></p>
+          <div class="events-soon__body">
+            {{ heading_text(date.course, 1, {class: 'events-soon__course'}) }}
+            <p class="events-soon__meta"><time datetime="{{ date.start }}">{{ date.day }}</time>, {{ date.time }}{% if date.venue %}<span aria-hidden="true"> · </span>{{ date.venue }}{% endif %}</p>
+            {% if date.seats is not null %}<p class="events-soon__seats">{{ date.seats == 1 ? t('1 seat left') : t('{count} seats left', {count: date.seats}) }}</p>{% endif %}
+          </div>
+          {% if date.url %}<p class="events-soon__link"><a class="events-button" href="{{ date.url }}">{{ t('Book') }}<span class="events-visually-hidden">: {{ date.course }}, {{ date.day }}</span></a></p>{% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="events-hint">{{ t('No dates are planned at the moment.') }}</p>
+  {% endif %}
+</div>

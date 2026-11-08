@@ -1,8 +1,9 @@
 # frootbox/events
 
 Events for the Frootbox CMS: dates with time, place, drafts, versions and
-planned publishing, categories, tags, a calendar file for each event and two
-blocks for any theme.
+planned publishing, categories, tags, a calendar file for each event, two
+blocks for any theme, and courses with free seats and a booking form from
+a provider.
 
 - **Events** (`frootbox/events/EventList`) is the view of the plugin: a page that shows a space of the events lists the
   upcoming ones at `plugin()` from the next one on, page by page,
@@ -21,6 +22,39 @@ over, the page cache is cleared on the next run of the scheduler.
 
 The calendar file of an event (iCalendar) lives at
 `/_events/calendar/<event id>/<language>.ics`.
+
+## Courses from a provider
+
+A provider of courses, such as `avaro/events`, brings courses with
+price per attendee and the least and most attendees, and their dates
+with free seats, booking window and the questions they ask. Nothing is
+mirrored: the blocks ask the provider, and a page with free seats stays
+at most a minute in the page cache.
+
+- **Course with dates** (`frootbox/events/CourseDates`): a course with
+  its facts and coming dates, each with a link to the booking or
+  "sold out".
+- **Courses soon** (`frootbox/events/NextCourseDates`): the next dates
+  that can be booked, over all courses or one.
+- **Course booking** (`frootbox/events/CourseBooking`): the form for
+  `?date=<id>` on the first page with this block. It posts to
+  `POST /_events/booking` (only from pages of this website), which runs
+  `frootbox/events/booking.place` and leads back with a message. It
+  works without JavaScript.
+
+Queries: `frootbox/events/course.list`, `frootbox/events/date.list`,
+`frootbox/events/date.show`. The booking works only for a visitor in a
+browser; the REST API and MCP get 409.
+
+A provider implements `Frootbox\Events\Courses\Provider\CourseProvider`
+and registers itself:
+
+```php
+$registry->add(CourseProviderEntry::class, new CourseProviderEntry(MyCourses::class, 'My courses'));
+```
+
+With more than one installed, the setting `provider` of
+`frootbox/events` names the class to use.
 
 ## Actions and queries
 
