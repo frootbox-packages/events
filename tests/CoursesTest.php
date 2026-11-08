@@ -22,6 +22,7 @@ use Frootbox\Events\Courses\ListDates;
 use Frootbox\Events\Courses\PlaceBooking;
 use Frootbox\Events\Courses\Provider\BookingState;
 use Frootbox\Events\Courses\Provider\CourseRef;
+use Frootbox\Events\Courses\Provider\CoursesUnavailable;
 use Frootbox\Events\Courses\Provider\Salutation;
 use Frootbox\Events\Courses\Provider\TotalChanged;
 use Frootbox\Events\Tests\Support\FakeCourses;
@@ -179,6 +180,22 @@ final class CoursesTest extends CoursesTestCase
         $this->browse('/_events/booking', $post);
 
         self::assertStringContainsString('Der Preis hat sich inzwischen geändert.', $this->visit('/anmeldung?date=10'));
+    }
+
+    public function testAfterAnErrorSendingAgainUsesTheSameKey(): void
+    {
+        $post = $this->post($this->visit('/anmeldung?date=10'));
+        FakeCourses::$fail = new CoursesUnavailable();
+        $this->browse('/_events/booking', $post);
+        FakeCourses::$fail = null;
+
+        $again = $this->post($this->visit('/anmeldung?date=10&attendees=1'));
+        self::assertSame($post['key'], $again['key'], 'The provider may have booked without answering in time.');
+
+        $this->browse('/_events/booking', $again);
+        self::assertCount(1, FakeCourses::bookings());
+        self::assertStringContainsString('Danke für Deine Anmeldung', $this->visit('/anmeldung?date=10&attendees=1'));
+        self::assertNotSame($post['key'], $this->post($this->visit('/anmeldung?date=10'))['key'], 'After the thanks a new booking gets a new key.');
     }
 
     public function testASoldOutOrClosedDateShowsNoForm(): void

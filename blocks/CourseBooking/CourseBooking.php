@@ -97,7 +97,7 @@ final readonly class CourseBooking implements BlockController
             ...$base,
             'date' => $shown,
             'page' => $page,
-            'hidden' => ['_return' => $here, '_language' => $context->language, 'date' => $date->id, 'key' => bin2hex(random_bytes(16)), 'expectedGross' => (string) $date->totalGross($count)],
+            'hidden' => ['_return' => $here, '_language' => $context->language, 'date' => $date->id, 'key' => self::key($values, $date->id), 'expectedGross' => (string) $date->totalGross($count)],
             'trap' => BookingForm::TRAP,
             'count' => $count,
             'counts' => $max > 1 ? range(1, $max) : [],
@@ -116,5 +116,19 @@ final readonly class CourseBooking implements BlockController
             'values' => $values,
             'errors' => $flash['errors'] ?? [],
         ];
+    }
+
+    /**
+     * The key of a try for this date that came back with an error, so sending
+     * again books once even if the provider booked without answering in time;
+     * a new key otherwise.
+     *
+     * @param array<string, mixed> $values the entries of the try before
+     */
+    private static function key(array $values, string $date): string
+    {
+        $kept = $values['key'] ?? null;
+
+        return \is_string($kept) && ($values['date'] ?? null) === $date && 1 === preg_match('/^[\x21-\x7E]{8,128}$/D', $kept) ? $kept : bin2hex(random_bytes(16));
     }
 }
