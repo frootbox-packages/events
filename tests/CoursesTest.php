@@ -21,6 +21,7 @@ use Frootbox\Events\Courses\Courses;
 use Frootbox\Events\Courses\ListDates;
 use Frootbox\Events\Courses\PlaceBooking;
 use Frootbox\Events\Courses\Provider\BookingState;
+use Frootbox\Events\Courses\Provider\CourseRef;
 use Frootbox\Events\Courses\Provider\Salutation;
 use Frootbox\Events\Courses\Provider\TotalChanged;
 use Frootbox\Events\Tests\Support\FakeCourses;
@@ -35,11 +36,13 @@ use PHPUnit\Framework\Attributes\CoversClass;
 #[CoversClass(CourseRendering::class)]
 final class CoursesTest extends CoursesTestCase
 {
+    private string $start;
+
     protected function setUp(): void
     {
         parent::setUp();
 
-        $start = $this->published(null, 'Start', [['block' => 'frootbox/events/NextCourseDates', 'fields' => ['title' => 'Kurstermine in Kürze']]]);
+        $this->start = $start = $this->published(null, 'Start', [['block' => 'frootbox/events/NextCourseDates', 'fields' => ['title' => 'Kurstermine in Kürze']]]);
         $this->published($start, 'Erste Hilfe', [['block' => 'frootbox/events/CourseDates', 'options' => ['course' => '2'], 'fields' => ['title' => 'Erste Hilfe Grundkurs', 'datesTitle' => 'Kommende Kurse']]]);
         $this->published($start, 'Anmeldung', [['block' => 'frootbox/events/CourseBooking']]);
     }
@@ -66,6 +69,31 @@ final class CoursesTest extends CoursesTestCase
         self::assertStringContainsString('href="/anmeldung?date=12"', $html);
         self::assertStringContainsString('noch 15 Plätze frei', $html);
         self::assertStringNotContainsString('ausgebucht', $html);
+    }
+
+    public function testCoursesSoonShowOnlyTheTickedCoursesMergedByStart(): void
+    {
+        // The partner course (3) has the earliest date, a second course (4) a later one
+        FakeCourses::$dates['20'] = FakeCourses::make('20', '+5 days 09:00', 5, course: new CourseRef('3', 'Partnerkurs'));
+        FakeCourses::$dates['21'] = FakeCourses::make('21', '+15 days 09:00', 5, course: new CourseRef('4', 'Erste Hilfe am Kind'));
+        $this->published($this->start, 'Ohne Partnerkurs', [['block' => 'frootbox/events/NextCourseDates', 'options' => ['courses' => ['2', '4'], 'count' => 3]]]);
+        $this->published($this->start, 'Alle', [['block' => 'frootbox/events/NextCourseDates', 'options' => ['courses' => [], 'count' => 3]]]);
+
+        $without = $this->visit('/ohne-partnerkurs');
+        self::assertStringNotContainsString('date=20', $without);
+        self::assertSame(['10', '21', '12'], self::linkedDates($without));
+
+        self::assertSame(['20', '10', '21'], self::linkedDates($this->visit('/alle')));
+    }
+
+    /**
+     * @return list<string> the dates linked to the booking, in order
+     */
+    private static function linkedDates(string $html): array
+    {
+        preg_match_all('~/anmeldung\?date=(\d+)"~', $html, $matches);
+
+        return array_values(array_unique($matches[1]));
     }
 
     public function testWithTheProviderDownTheBlockSaysSoAndThePageIsNotCached(): void

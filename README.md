@@ -35,7 +35,7 @@ at most a minute in the page cache.
   its facts and coming dates, each with a link to the booking or
   "sold out".
 - **Courses soon** (`frootbox/events/NextCourseDates`): the next dates
-  that can be booked, over all courses or one.
+  that can be booked, over all courses or the ticked ones.
 - **Course booking** (`frootbox/events/CourseBooking`): the form for
   `?date=<id>` on the first page with this block. It posts to
   `POST /_events/booking` (only from pages of this website), which runs

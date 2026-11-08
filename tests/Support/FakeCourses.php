@@ -67,7 +67,7 @@ final class FakeCourses implements CourseProvider
         ];
     }
 
-    public static function make(string $id, string $start, int $free, BookingState $state = BookingState::Open): CourseDate
+    public static function make(string $id, string $start, int $free, BookingState $state = BookingState::Open, ?CourseRef $course = null): CourseDate
     {
         $startsAt = new DateTimeImmutable($start);
 
@@ -81,7 +81,7 @@ final class FakeCourses implements CourseProvider
             $state,
             number: 'K-' . $id,
             subtitle: 'Grundkurs',
-            course: new CourseRef('2', 'Erste Hilfe'),
+            course: $course ?? new CourseRef('2', 'Erste Hilfe'),
             venue: new Venue('Schulungsraum Aachen', 'Theaterstraße 1', '52062', 'Aachen', 'DE'),
             priceGross: 4000,
             attendeesMin: 4,
