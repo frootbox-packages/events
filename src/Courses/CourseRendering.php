@@ -81,6 +81,9 @@ final readonly class CourseRendering
             'start' => $start->format(DateTimeInterface::ATOM),
             'end' => $end->format(DateTimeInterface::ATOM),
             'day' => self::format($start, $language, IntlDateFormatter::FULL, IntlDateFormatter::NONE),
+            // Short and long without the weekday, e.g. 14.11.2026 and 14. November 2026.
+            'shortDate' => self::format($start, $language, IntlDateFormatter::MEDIUM, IntlDateFormatter::NONE),
+            'longDate' => self::format($start, $language, IntlDateFormatter::LONG, IntlDateFormatter::NONE),
             'dayNumber' => self::pattern($start, $language, 'd'),
             'month' => self::pattern($start, $language, 'MMM'),
             'time' => $sameDay

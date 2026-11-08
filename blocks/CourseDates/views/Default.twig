@@ -9,26 +9,30 @@ options:
   count: { type: number, label: Number of dates, default: 6, min: 1, max: 20 }
 fields:
   title: { type: headline, label: Heading, optional: true, maxLength: 100, placeholder: "Course" }
+  subtitle: { type: headline, label: Below the heading, optional: true, maxLength: 100 }
   text: { type: richtext, label: Text, optional: true }
+  note: { type: richtext, label: Note on the course, optional: true, description: "Below price and attendees, e.g. that the course also takes place at a company." }
   datesTitle: { type: headline, label: Heading of the dates, optional: true, maxLength: 100, placeholder: "Coming dates" }
 #}
 <section class="events-course">
   {{ heading('title', 0, {class: 'events-course__title'}) }}
+  {% if value('subtitle') or editing() %}<p class="events-course__subtitle">{{ field('subtitle') }}</p>{% endif %}
   <div class="events-course__text">{{ field('text') }}</div>
   {% if state == 'none' %}
     {% if editing %}<p class="events-hint">{{ t('No provider of courses is connected yet.') }}</p>{% endif %}
   {% elseif state == 'error' %}
     <p class="events-hint">{{ t('The dates cannot be loaded right now.') }}</p>
-  {% else %}
-    {% if facts and course %}
-      <table class="events-course__facts">
-        <tbody>
-          <tr><th scope="row">{{ t('Price per attendee') }}</th><td>{{ course.price ?? (course.free ? t('Free of charge') : '–') }}</td></tr>
-          {% if course.min %}<tr><th scope="row">{{ t('Attendees at least') }}</th><td>{{ course.min }}</td></tr>{% endif %}
-          {% if course.max %}<tr><th scope="row">{{ t('Attendees at most') }}</th><td>{{ course.max }}</td></tr>{% endif %}
-        </tbody>
-      </table>
-    {% endif %}
+  {% elseif facts and course %}
+    <table class="events-course__facts">
+      <tbody>
+        <tr><th scope="row">{{ t('Price per attendee') }}</th><td>{{ course.price ?? (course.free ? t('Free of charge') : '–') }}</td></tr>
+        {% if course.min %}<tr><th scope="row">{{ t('Attendees at least') }}</th><td>{{ course.min }}</td></tr>{% endif %}
+        {% if course.max %}<tr><th scope="row">{{ t('Attendees at most') }}</th><td>{{ course.max }}</td></tr>{% endif %}
+      </tbody>
+    </table>
+  {% endif %}
+  <div class="events-course__note">{{ field('note') }}</div>
+  {% if state == 'ready' %}
     {{ heading('datesTitle', 1, {class: 'events-course__dates-title'}) }}
     {% if dates %}
       <ul class="events-dates">

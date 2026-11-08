@@ -3,7 +3,8 @@
 .events-course { display: flex; flex-direction: column; gap: var(--space-m, 1.5rem); }
 .events-course__title { margin: 0; font-size: var(--size-2xl, 2rem); }
 .events-course__dates-title { margin: 0; font-size: var(--size-xl, 1.5rem); }
-.events-course__text:empty { display: none; }
+.events-course__subtitle { margin: calc(-1 * var(--space-s, 1rem)) 0 0; color: var(--color-muted, #57534e); font-size: var(--size-l, 1.25rem); }
+.events-course__text:empty, .events-course__note:empty { display: none; }
 .events-course__facts { border-collapse: collapse; inline-size: fit-content; }
 .events-course__facts th, .events-course__facts td { padding-block: var(--space-2xs, 0.25rem); padding-inline: 0 var(--space-m, 1.5rem); border-block-end: 1px solid var(--color-line, #e7e5e4); text-align: start; }
 .events-course__facts th { font-weight: 400; color: var(--color-muted, #57534e); }
