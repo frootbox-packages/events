@@ -34,7 +34,7 @@ fields:
       <ul class="events-dates">
         {% for date in dates %}
           <li class="events-date{% if not date.bookable %} events-date--closed{% endif %}">
-            <p class="events-date__when"><time datetime="{{ date.start }}">{{ date.day }}</time><br>{% if date.multiDay %}{{ t('until {day}', {day: date.until}) }}<br>{% endif %}{{ date.time }}</p>
+            <p class="events-date__when"><time datetime="{{ date.start }}">{{ date.day }}</time><br>{% if date.multiDay %}{{ date.startTime }}<br>{{ t('until {day}', {day: date.until ~ ', ' ~ date.endTime}) }}{% else %}{{ date.time }}{% endif %}</p>
             <p class="events-date__place">{% if date.online %}{{ t('Online') }}{% else %}{{ date.venue }}{% if date.venue and date.address %}<br>{% endif %}{{ date.address }}{% endif %}</p>
             <p class="events-date__booking">
               {% if date.bookable %}

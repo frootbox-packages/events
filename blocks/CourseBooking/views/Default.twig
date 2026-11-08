@@ -12,7 +12,7 @@ fields:
   {%- set id = 'events-booking-' ~ name|replace({'[': '-', ']': ''}) -%}
   {%- set key = options.key ?? name -%}
   {%- set error = errors[key] ?? null -%}
-  <p class="events-field{% if options.wide ?? false %} events-field--wide{% endif %}">
+  <p class="events-field{% if options.wide ?? false %} events-field--wide{% endif %}{% if options.size ?? false %} events-field--{{ options.size }}{% endif %}">
     <label for="{{ id }}">{{ label }}{% if not (options.required ?? false) %} <span class="events-field__optional">{{ t('(optional)') }}</span>{% endif %}</label>
     <input id="{{ id }}" name="{{ name }}" type="{{ options.type ?? 'text' }}" value="{{ options.value ?? '' }}"{% if options.required ?? false %} required{% endif %}{% if options.autocomplete ?? false %} autocomplete="{{ options.autocomplete }}"{% endif %}{% if options.max ?? false %} maxlength="{{ options.max }}"{% endif %}{% if error %} aria-invalid="true" aria-describedby="{{ id }}-error"{% endif %}>
     {% if error %}<span class="events-field__error" id="{{ id }}-error">{{ error }}</span>{% endif %}
@@ -30,21 +30,25 @@ fields:
     <p class="events-hint">{{ t('This date is no longer there.') }}</p>
   {% elseif state == 'error' %}
     <p class="events-flash" role="alert">{{ t(error) }}</p>
-  {% elseif state == 'closed' or state == 'ready' %}
+  {% elseif date ?? false %}
     <div class="events-booking__date">
       {{ heading_text(date.course, 1, {class: 'events-booking__course'}) }}
       {% if date.subtitle %}<p class="events-booking__subtitle">{{ date.subtitle }}</p>{% endif %}
       <dl class="events-booking__facts">
-        <dt>{{ t('Date') }}</dt><dd><time datetime="{{ date.start }}">{{ date.day }}</time>{% if date.multiDay %} – {{ date.until }}{% endif %}</dd>
-        <dt>{{ t('Time of day') }}</dt><dd>{{ date.time }}</dd>
+        {% if date.multiDay %}
+          <dt>{{ t('Date') }}</dt><dd><time datetime="{{ date.start }}">{{ date.day }}, {{ date.startTime }}</time><br>{{ t('until {day}', {day: date.until ~ ', ' ~ date.endTime}) }}</dd>
+        {% else %}
+          <dt>{{ t('Date') }}</dt><dd><time datetime="{{ date.start }}">{{ date.day }}</time></dd>
+          <dt>{{ t('Time of day') }}</dt><dd>{{ date.time }}</dd>
+        {% endif %}
         {% if date.online %}<dt>{{ t('Venue') }}</dt><dd>{{ t('Online') }}</dd>{% elseif date.venue or date.address %}<dt>{{ t('Venue') }}</dt><dd>{{ date.venue }}{% if date.venue and date.address %}<br>{% endif %}{{ date.address }}</dd>{% endif %}
         <dt>{{ t('Price per attendee') }}</dt><dd>{{ date.price ?? t('Free of charge') }}</dd>
-        {% if date.seats is not null %}<dt>{{ t('Free seats') }}</dt><dd>{{ date.seats }}</dd>{% endif %}
+        {% if date.seats is not null and state != 'done' %}<dt>{{ t('Free seats') }}</dt><dd>{{ date.seats }}</dd>{% endif %}
       </dl>
     </div>
     {% if state == 'closed' %}
       <p class="events-hint">{{ date.state == 'soldOut' ? t('This date is sold out.') : t('This date cannot be booked at the moment.') }}</p>
-    {% else %}
+    {% elseif state == 'ready' %}
       {% if counts %}
         <form class="events-booking__count" method="get" action="{{ page }}">
           <input type="hidden" name="date" value="{{ date.id }}">
@@ -59,22 +63,33 @@ fields:
         {% for name, value in hidden %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}
         <fieldset class="events-booking__group">
           <legend>{{ t('Your details') }}</legend>
-          <p class="events-field">
-            <label for="events-booking-salutation">{{ t('Salutation') }} <span class="events-field__optional">{{ t('(optional)') }}</span></label>
-            <select id="events-booking-salutation" name="booker[salutation]">
-              <option value="">{{ t('No details') }}</option>
-              {% for value, label in {ms: 'Ms', mr: 'Mr', diverse: 'Diverse'} %}<option value="{{ value }}"{% if (booker.salutation ?? '') == value %} selected{% endif %}>{{ t(label) }}</option>{% endfor %}
-            </select>
-          </p>
-          {{ _self.input('booker[company]', t('Company'), values, errors, {key: 'booker/company', value: booker.company ?? '', autocomplete: 'organization', max: 200, wide: true}) }}
-          {{ _self.input('booker[firstName]', t('First name'), values, errors, {key: 'booker/firstName', value: booker.firstName ?? '', autocomplete: 'given-name', max: 100, required: true}) }}
-          {{ _self.input('booker[lastName]', t('Last name'), values, errors, {key: 'booker/lastName', value: booker.lastName ?? '', autocomplete: 'family-name', max: 100, required: true}) }}
-          {{ _self.input('booker[street]', t('Street'), values, errors, {key: 'booker/street', value: booker.street ?? '', autocomplete: 'address-line1', max: 100, required: address}) }}
-          {{ _self.input('booker[houseNumber]', t('No.'), values, errors, {key: 'booker/houseNumber', value: booker.houseNumber ?? '', max: 20, required: address}) }}
-          {{ _self.input('booker[postalCode]', t('Postal code'), values, errors, {key: 'booker/postalCode', value: booker.postalCode ?? '', autocomplete: 'postal-code', max: 20, required: address}) }}
-          {{ _self.input('booker[city]', t('City'), values, errors, {key: 'booker/city', value: booker.city ?? '', autocomplete: 'address-level2', max: 100, required: address}) }}
-          {{ _self.input('booker[email]', t('Email'), values, errors, {key: 'booker/email', value: booker.email ?? '', type: 'email', autocomplete: 'email', max: 200, required: true}) }}
-          {{ _self.input('booker[phone]', t('Phone'), values, errors, {key: 'booker/phone', value: booker.phone ?? '', type: 'tel', autocomplete: 'tel', max: 50, required: phone}) }}
+          {# Pairs that belong together share a line and wrap on narrow screens. #}
+          <div class="events-booking__row">
+            <p class="events-field events-field--narrow">
+              <label for="events-booking-salutation">{{ t('Salutation') }} <span class="events-field__optional">{{ t('(optional)') }}</span></label>
+              <select id="events-booking-salutation" name="booker[salutation]" autocomplete="honorific-prefix">
+                <option value="">{{ t('No details') }}</option>
+                {% for value, label in {ms: 'Ms', mr: 'Mr', diverse: 'Diverse'} %}<option value="{{ value }}"{% if (booker.salutation ?? '') == value %} selected{% endif %}>{{ t(label) }}</option>{% endfor %}
+              </select>
+            </p>
+            {{ _self.input('booker[company]', t('Company'), values, errors, {key: 'booker/company', value: booker.company ?? '', autocomplete: 'organization', max: 200, size: 'large'}) }}
+          </div>
+          <div class="events-booking__row">
+            {{ _self.input('booker[firstName]', t('First name'), values, errors, {key: 'booker/firstName', value: booker.firstName ?? '', autocomplete: 'given-name', max: 100, required: true}) }}
+            {{ _self.input('booker[lastName]', t('Last name'), values, errors, {key: 'booker/lastName', value: booker.lastName ?? '', autocomplete: 'family-name', max: 100, required: true}) }}
+          </div>
+          <div class="events-booking__row">
+            {{ _self.input('booker[street]', t('Street'), values, errors, {key: 'booker/street', value: booker.street ?? '', autocomplete: 'address-line1', max: 100, required: address, size: 'large'}) }}
+            {{ _self.input('booker[houseNumber]', t('No.'), values, errors, {key: 'booker/houseNumber', value: booker.houseNumber ?? '', max: 20, required: address, size: 'small'}) }}
+          </div>
+          <div class="events-booking__row">
+            {{ _self.input('booker[postalCode]', t('Postal code'), values, errors, {key: 'booker/postalCode', value: booker.postalCode ?? '', autocomplete: 'postal-code', max: 20, required: address, size: 'small'}) }}
+            {{ _self.input('booker[city]', t('City'), values, errors, {key: 'booker/city', value: booker.city ?? '', autocomplete: 'address-level2', max: 100, required: address, size: 'large'}) }}
+          </div>
+          <div class="events-booking__row">
+            {{ _self.input('booker[email]', t('Email'), values, errors, {key: 'booker/email', value: booker.email ?? '', type: 'email', autocomplete: 'email', max: 200, required: true}) }}
+            {{ _self.input('booker[phone]', t('Phone'), values, errors, {key: 'booker/phone', value: booker.phone ?? '', type: 'tel', autocomplete: 'tel', max: 50, required: phone}) }}
+          </div>
         </fieldset>
         {% if errors.attendees ?? false %}<p class="events-field__error">{{ errors.attendees }}</p>{% endif %}
         {% for index in 0..(count - 1) %}
@@ -95,15 +110,15 @@ fields:
               {% set error = errors['fields/' ~ item.key] ?? null %}
               {% set value = values.fields[item.key] ?? '' %}
               {% if item.kind == 'checkbox' %}
-                <p class="events-choice events-field--wide"><label><input type="checkbox" name="fields[{{ item.key }}]" value="1"{% if value %} checked{% endif %}{% if item.required %} required{% endif %}{% if error %} aria-invalid="true"{% endif %}> {{ item.title }}</label>{% if error %}<span class="events-field__error">{{ error }}</span>{% endif %}</p>
+                <p class="events-choice events-field--wide"><label><input type="checkbox" name="fields[{{ item.key }}]" value="1"{% if value %} checked{% endif %}{% if item.required %} required{% endif %}{% if error %} aria-invalid="true" aria-describedby="{{ id }}-error"{% endif %}><span>{{ item.title }}</span></label>{% if error %}<span class="events-field__error" id="{{ id }}-error">{{ error }}</span>{% endif %}</p>
               {% elseif item.kind == 'choice' %}
                 <p class="events-field events-field--wide">
                   <label for="{{ id }}">{{ item.title }}{% if not item.required %} <span class="events-field__optional">{{ t('(optional)') }}</span>{% endif %}</label>
-                  <select id="{{ id }}" name="fields[{{ item.key }}]"{% if item.required %} required{% endif %}>
+                  <select id="{{ id }}" name="fields[{{ item.key }}]"{% if item.required %} required{% endif %}{% if error %} aria-invalid="true" aria-describedby="{{ id }}-error"{% endif %}>
                     <option value="">{{ t('Please choose') }}</option>
                     {% for option in item.options %}<option value="{{ option.value }}"{% if value == option.value %} selected{% endif %}>{{ option.title }}</option>{% endfor %}
                   </select>
-                  {% if error %}<span class="events-field__error">{{ error }}</span>{% endif %}
+                  {% if error %}<span class="events-field__error" id="{{ id }}-error">{{ error }}</span>{% endif %}
                 </p>
               {% else %}
                 {{ _self.input('fields[' ~ item.key ~ ']', item.title, values, errors, {key: 'fields/' ~ item.key, value: value, max: 1000, required: item.required, wide: true}) }}
@@ -120,7 +135,7 @@ fields:
         <div class="events-booking__note">{{ field('note') }}</div>
         {% for text in legal|filter(text => text.required) %}
           <div class="events-choice">
-            <label><input type="checkbox" name="consents[]" value="{{ text.key }}" required{% if text.key in (values.consents ?? []) %} checked{% endif %}> {{ t('I agree:') }} {% if text.url %}<a href="{{ text.url }}" target="_blank" rel="noopener">{{ text.title }}</a>{% else %}{{ text.title }}{% endif %}</label>
+            <label><input type="checkbox" name="consents[]" value="{{ text.key }}" required{% if text.key in (values.consents ?? []) %} checked{% endif %}><span>{{ t('I agree:') }} {% if text.url %}<a href="{{ text.url }}" target="_blank" rel="noopener">{{ text.title }}</a>{% else %}{{ text.title }}{% endif %}</span></label>
             {% if text.text %}<details class="events-booking__legal"><summary>{{ t('Read the text') }}</summary>{{ text.text|nl2br }}</details>{% endif %}
           </div>
         {% endfor %}

@@ -54,8 +54,15 @@ final readonly class CourseBooking implements BlockController
             return ['state' => 'none', ...$base];
         }
 
+        // After the booking the date stays below the thanks, so the person sees what they booked.
         if (true === ($flash['success'] ?? false)) {
-            return ['state' => 'done', ...$base];
+            try {
+                $done = '' === $id ? null : $this->rendering->date($this->courses->date(self::ACTION, $id), $context->language, false);
+            } catch (ActionException|EntityNotFoundException) {
+                $done = null;
+            }
+
+            return ['state' => 'done', 'date' => $done, ...$base];
         }
 
         if ('' === $id) {

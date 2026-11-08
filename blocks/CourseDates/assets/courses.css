@@ -1,7 +1,8 @@
 /* SPDX-License-Identifier: MIT */
 /* A course with its dates. Values come from the tokens of the theme, with fallbacks. */
 .events-course { display: flex; flex-direction: column; gap: var(--space-m, 1.5rem); }
-.events-course__title, .events-course__dates-title { margin: 0; }
+.events-course__title { margin: 0; font-size: var(--size-2xl, 2rem); }
+.events-course__dates-title { margin: 0; font-size: var(--size-xl, 1.5rem); }
 .events-course__text:empty { display: none; }
 .events-course__facts { border-collapse: collapse; inline-size: fit-content; }
 .events-course__facts th, .events-course__facts td { padding-block: var(--space-2xs, 0.25rem); padding-inline: 0 var(--space-m, 1.5rem); border-block-end: 1px solid var(--color-line, #e7e5e4); text-align: start; }

@@ -251,6 +251,10 @@ final readonly class PlaceBooking implements Action
 
             $text = $this->text($this->fields, $field->key, $pointer, 1000, $field->required, $errors);
 
+            if (FieldKind::Choice === $field->kind && null === $text && $field->required) {
+                $errors[$pointer] = new Message('Please choose one of the options.');
+            }
+
             if (FieldKind::Choice === $field->kind && null !== $text && !\in_array($text, array_map(static fn(FieldOption $option): string => $option->value, $field->options), true)) {
                 $errors[$pointer] = new Message('Please choose one of the options.');
 

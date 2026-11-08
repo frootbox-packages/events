@@ -86,6 +86,8 @@ final readonly class CourseRendering
             'time' => $sameDay
                 ? self::format($start, $language, IntlDateFormatter::NONE, IntlDateFormatter::SHORT) . ' – ' . self::format($end, $language, IntlDateFormatter::NONE, IntlDateFormatter::SHORT)
                 : self::format($start, $language, IntlDateFormatter::MEDIUM, IntlDateFormatter::SHORT) . ' – ' . self::format($end, $language, IntlDateFormatter::MEDIUM, IntlDateFormatter::SHORT),
+            'startTime' => self::format($start, $language, IntlDateFormatter::NONE, IntlDateFormatter::SHORT),
+            'endTime' => self::format($end, $language, IntlDateFormatter::NONE, IntlDateFormatter::SHORT),
             'multiDay' => !$sameDay,
             'until' => $sameDay ? null : self::format($end, $language, IntlDateFormatter::FULL, IntlDateFormatter::NONE),
             'venue' => $date->venue->title ?? null,

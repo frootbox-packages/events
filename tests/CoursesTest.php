@@ -102,6 +102,8 @@ final class CoursesTest extends CoursesTestCase
         $thanks = $this->visit('/anmeldung?date=10&attendees=1');
         self::assertStringContainsString('Danke für Deine Anmeldung B-1.', $thanks);
         self::assertStringNotContainsString('<form', $thanks);
+        self::assertStringContainsString('Schulungsraum Aachen', $thanks, 'The booked date stays below the thanks.');
+        self::assertStringNotContainsString('Freie Plätze', $thanks);
 
         $this->browse('/_events/booking', $post);
         self::assertCount(1, FakeCourses::bookings(), 'The same key books once.');
