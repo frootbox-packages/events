@@ -53,6 +53,9 @@ final class FakeCourses implements CourseProvider, ChannelSource, AttendeeSource
     /** @var list<ChannelChoice> */
     public static array $channels = [];
 
+    /** @var list<string> courses the channel no longer shows, as when a category is taken out of it */
+    public static array $gone = [];
+
     /** Whether the names cannot be loaded right now. */
     public static bool $namesDown = false;
 
@@ -80,6 +83,7 @@ final class FakeCourses implements CourseProvider, ChannelSource, AttendeeSource
     {
         self::$fail = null;
         self::$namesDown = false;
+        self::$gone = [];
         self::$bookings = [];
         self::$dates = [
             '10' => self::make('10', '+10 days 09:00', 2),
@@ -132,13 +136,18 @@ final class FakeCourses implements CourseProvider, ChannelSource, AttendeeSource
         $this->failing();
 
         return '' === $this->key
-            ? [new Course('2', 'Erste Hilfe', 'EUR', 'Grundkurs', priceGross: 4000, attendeesMin: 4, attendeesMax: 20)]
+            ? array_filter([new Course('2', 'Erste Hilfe', 'EUR', 'Grundkurs', priceGross: 4000, attendeesMin: 4, attendeesMax: 20)], static fn(Course $course): bool => !\in_array($course->id, self::$gone, true))
             : [new Course('2', 'Erste Hilfe', 'EUR', 'Grundkurs', priceGross: 4000), new Course('7', 'Partnerkurs', 'EUR', priceGross: 0)];
     }
 
     public function dates(DateQuery $query): array
     {
         $this->failing();
+
+        if (null !== $query->course && \in_array($query->course, self::$gone, true)) {
+            throw new NotFound($query->course);
+        }
+
         $dates = array_values(array_filter($this->pool(), static fn(CourseDate $date): bool => (null === $query->course || $date->course?->id === $query->course) && (!$query->available || $date->bookable())));
         usort($dates, static fn(CourseDate $a, CourseDate $b): int => $a->startsAt <=> $b->startsAt);
 

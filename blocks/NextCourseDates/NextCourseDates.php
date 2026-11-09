@@ -13,6 +13,7 @@ use Frootbox\Core\Component\BlockContext;
 use Frootbox\Core\Component\BlockController;
 use Frootbox\Core\Page\EditMode;
 use Frootbox\Core\View\Delivery;
+use Frootbox\Database\EntityNotFoundException;
 use Frootbox\Events\Courses\ChannelAccess;
 use Frootbox\Events\Courses\CourseRendering;
 use Frootbox\Events\Courses\Courses;
@@ -85,7 +86,14 @@ final readonly class NextCourseDates implements BlockController
         $dates = [];
 
         foreach ($ids as $id) {
-            foreach ($this->courses->dates('frootbox/events/date.list', new DateQuery($id, available: false, limit: $count), $channel) as $date) {
+            try {
+                $found = $this->courses->dates('frootbox/events/date.list', new DateQuery($id, available: false, limit: $count), $channel);
+            } catch (EntityNotFoundException) {
+                // A ticked course the channel no longer shows, e.g. its category was taken out
+                continue;
+            }
+
+            foreach ($found as $date) {
                 $dates[$date->id] = $date;
             }
         }

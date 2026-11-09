@@ -13,6 +13,7 @@ use Frootbox\Core\Component\BlockContext;
 use Frootbox\Core\Component\BlockController;
 use Frootbox\Core\Page\EditMode;
 use Frootbox\Core\View\Delivery;
+use Frootbox\Database\EntityNotFoundException;
 use Frootbox\Events\Courses\ChannelAccess;
 use Frootbox\Events\Courses\CourseRendering;
 use Frootbox\Events\Courses\Courses;
@@ -57,8 +58,9 @@ final readonly class CourseDates implements BlockController
 
         try {
             $course = '' === $id ? null : $this->courses->course('frootbox/events/course.list', $id, $channel);
-            $dates = $this->courses->dates('frootbox/events/date.list', new DateQuery('' === $id ? null : $id, limit: $count), $channel);
-        } catch (ActionException|NotFound) {
+            // A course the channel no longer shows has no dates here, not an error page
+            $dates = '' !== $id && null === $course ? [] : $this->courses->dates('frootbox/events/date.list', new DateQuery('' === $id ? null : $id, limit: $count), $channel);
+        } catch (ActionException|EntityNotFoundException|NotFound) {
             $this->delivery->withoutCache();
 
             return ['state' => 'error', ...$base];

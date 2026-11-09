@@ -92,6 +92,17 @@ final class CoursesTest extends CoursesTestCase
         self::assertSame(['20', '10'], self::linkedDates($this->visit('/alle')));
     }
 
+    public function testACourseTheChannelNoLongerShowsIsLeftOut(): void
+    {
+        // The category of course 2 was taken out of the channel at the provider
+        FakeCourses::$dates['21'] = FakeCourses::make('21', '+15 days 09:00', 5, course: new CourseRef('4', 'Erste Hilfe am Kind'));
+        FakeCourses::$gone = ['2'];
+        $this->published($this->start, 'Ticked', [['block' => 'frootbox/events/NextCourseDates', 'options' => ['courses' => ['2', '4'], 'count' => 3]]]);
+
+        self::assertSame(['21'], self::linkedDates($this->visit('/ticked')), 'The other ticked course stays.');
+        self::assertStringNotContainsString('Die Termine lassen sich gerade nicht laden.', $this->visit('/erste-hilfe'), 'The section of the course shows no dates, no error.');
+    }
+
     /**
      * @return list<string> the dates linked to the booking, in order
      */
