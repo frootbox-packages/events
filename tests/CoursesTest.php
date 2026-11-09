@@ -61,15 +61,20 @@ final class CoursesTest extends CoursesTestCase
         self::assertSame(CourseRendering::LIFETIME, $this->get(Delivery::class)->cacheLifetime(), 'Free seats stay fresh.');
     }
 
-    public function testCoursesSoonLeaveOutSoldOutDates(): void
+    public function testCoursesSoonShowEveryPublishedDateAndSayHowToBook(): void
     {
+        // Not bookable online at the provider, e.g. only by phone (decision 0361)
+        FakeCourses::$dates['13'] = FakeCourses::make('13', '+14 days 09:00', 9, BookingState::Offline);
+
         $html = $this->visit('/');
 
         self::assertStringContainsString('Kurstermine in Kürze', $html);
-        self::assertStringContainsString('href="/anmeldung?date=10"', $html);
-        self::assertStringContainsString('href="/anmeldung?date=12"', $html);
+        self::assertSame(['10', '12'], self::linkedDates($html));
         self::assertStringContainsString('noch 15 Plätze frei', $html);
-        self::assertStringNotContainsString('ausgebucht', $html);
+        self::assertStringContainsString('Leider ausgebucht', $html, 'A sold-out date stays, without a link.');
+        self::assertStringContainsString('Anmeldung telefonisch oder persönlich', $html);
+        self::assertStringNotContainsString('noch 9 Plätze frei', $html, 'Free seats only where one books online.');
+        self::assertStringContainsString('Anmeldung telefonisch oder persönlich', $this->visit('/erste-hilfe'), 'The same note in the section of the course.');
     }
 
     public function testCoursesSoonShowOnlyTheTickedCoursesMergedByStart(): void
@@ -82,9 +87,9 @@ final class CoursesTest extends CoursesTestCase
 
         $without = $this->visit('/ohne-partnerkurs');
         self::assertStringNotContainsString('date=20', $without);
-        self::assertSame(['10', '21', '12'], self::linkedDates($without));
+        self::assertSame(['10', '21'], self::linkedDates($without), 'The sold-out date 11 takes the third place.');
 
-        self::assertSame(['20', '10', '21'], self::linkedDates($this->visit('/alle')));
+        self::assertSame(['20', '10'], self::linkedDates($this->visit('/alle')));
     }
 
     /**

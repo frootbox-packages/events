@@ -68,8 +68,9 @@ the provider, and bookings go straight there. Three blocks show them:
 - **Course with dates** on the page of a course: choose the course,
   write the text, and the block adds the price per attendee, the least
   and most attendees and the coming dates with free seats.
-- **Courses soon** shows the next dates with free seats, e.g. on the
-  start page.
+- **Courses soon** shows the next dates, e.g. on the start page. A date
+  that cannot be booked online says why: sold out, booking opens soon,
+  or booking by phone or in person.
 - **Course booking** is the form. Put it on a page of its own, e.g.
   "Booking"; the dates link to the first page with it. A visitor fills
   in their details, the attendees and the questions of the course,

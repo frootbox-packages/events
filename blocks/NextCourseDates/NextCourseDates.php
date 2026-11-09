@@ -20,8 +20,9 @@ use Frootbox\Events\Courses\Provider\CourseDate;
 use Frootbox\Events\Courses\Provider\DateQuery;
 
 /**
- * The next dates of the courses that can be booked, e.g. "Courses soon"
- * on the start page (decision 0351); sold-out dates are left out. Editors
+ * The next published dates of the courses, e.g. "Courses soon" on the
+ * start page (decision 0351): also sold-out ones and ones not bookable
+ * online, which the view marks instead of linking (decision 0361). Editors
  * tick the courses, none ticked means all (decision 0355). A further
  * channel as in CourseDates (decision 0360).
  */
@@ -63,7 +64,7 @@ final readonly class NextCourseDates implements BlockController
         return [
             'state' => 'ready',
             ...$base,
-            'dates' => array_map(fn(CourseDate $date): array => $this->rendering->date($date, $context->language, channel: $channel), array_values(array_filter($dates, static fn(CourseDate $date): bool => $date->bookable()))),
+            'dates' => array_map(fn(CourseDate $date): array => $this->rendering->date($date, $context->language, channel: $channel), $dates),
         ];
     }
 
@@ -77,14 +78,14 @@ final readonly class NextCourseDates implements BlockController
     private function dates(array $ids, int $count, string $channel): array
     {
         if ([] === $ids) {
-            return $this->courses->dates('frootbox/events/date.list', new DateQuery(null, available: true, limit: $count), $channel);
+            return $this->courses->dates('frootbox/events/date.list', new DateQuery(null, available: false, limit: $count), $channel);
         }
 
         // A provider filters by one course; each course gives at most $count
         $dates = [];
 
         foreach ($ids as $id) {
-            foreach ($this->courses->dates('frootbox/events/date.list', new DateQuery($id, available: true, limit: $count), $channel) as $date) {
+            foreach ($this->courses->dates('frootbox/events/date.list', new DateQuery($id, available: false, limit: $count), $channel) as $date) {
                 $dates[$date->id] = $date;
             }
         }

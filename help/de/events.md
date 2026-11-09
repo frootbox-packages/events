@@ -68,8 +68,10 @@ Drei Blöcke zeigen sie:
 - **Kurs mit Terminen** auf der Seite eines Kurses: Kurs wählen, Text
   schreiben, und der Block ergänzt Preis pro Person, mindestens und
   höchstens Teilnehmer und die kommenden Termine mit freien Plätzen.
-- **Kurstermine in Kürze** zeigt die nächsten Termine mit freien
-  Plätzen, z. B. auf der Startseite.
+- **Kurstermine in Kürze** zeigt die nächsten Termine, z. B. auf der
+  Startseite. Ein Termin, für den man sich nicht online anmelden kann,
+  sagt, warum: ausgebucht, Anmeldung bald möglich oder Anmeldung
+  telefonisch oder persönlich.
 - **Kursanmeldung** ist das Formular. Setz es auf eine eigene Seite,
   z. B. „Anmeldung“; die Termine verlinken auf die erste Seite damit.
   Besucher geben ihre Angaben, die Teilnehmer und die Fragen des Kurses

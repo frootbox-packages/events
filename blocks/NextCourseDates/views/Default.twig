@@ -1,6 +1,6 @@
 {# frootbox
 title: Courses soon
-description: The next dates of the courses with free seats, e.g. on the start page, each with the time and a link to the booking.
+description: The next dates of the courses, e.g. on the start page, each with the time and a link to the booking or a note how to book.
 group: teaser
 keywords: [Courses, Dates, Booking, Seats, Next, Upcoming]
 options:
@@ -26,9 +26,13 @@ fields:
           <div class="events-soon__body">
             {{ heading_text(date.course, 1, {class: 'events-soon__course'}) }}
             <p class="events-soon__meta">{% if date.multiDay %}<time datetime="{{ date.start }}">{{ date.time }}</time>{% else %}<time datetime="{{ date.start }}">{{ date.day }}</time>, {{ date.time }}{% endif %}{% if date.venue %}<span aria-hidden="true"> · </span>{{ date.venue }}{% endif %}</p>
-            {% if date.seats is not null %}<p class="events-soon__seats">{{ date.seats == 1 ? t('1 seat left') : t('{count} seats left', {count: date.seats}) }}</p>{% endif %}
+            {% if date.bookable and date.seats is not null %}<p class="events-soon__seats">{{ date.seats == 1 ? t('1 seat left') : t('{count} seats left', {count: date.seats}) }}</p>{% endif %}
           </div>
-          {% if date.url %}<p class="events-soon__link"><a class="events-button" href="{{ date.url }}">{{ t('Book') }}<span class="events-visually-hidden">: {{ date.course }}, {{ date.day }}</span></a></p>{% endif %}
+          {% if date.url %}
+            <p class="events-soon__link"><a class="events-button" href="{{ date.url }}">{{ t('Book') }}<span class="events-visually-hidden">: {{ date.course }}, {{ date.day }}</span></a></p>
+          {% elseif not date.bookable %}
+            <p class="events-soon__note">{{ date.state == 'soldOut' ? t('Sold out') : (date.state == 'notYetOpen' ? t('Booking opens soon') : (date.state == 'offline' ? t('Booking by phone or in person') : t('Booking closed'))) }}</p>
+          {% endif %}
         </li>
       {% endfor %}
     </ul>
