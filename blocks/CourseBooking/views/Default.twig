@@ -4,6 +4,8 @@ description: "The booking form for a date of a course: the person who books, the
 group: list
 keywords: [Courses, Booking, Registration, Form, Dates]
 query: [date, attendees]
+options:
+  channel: { type: choice, label: Channel, source: frootbox/events/channel.choices, default: '', description: "Which channel of the provider of courses. Dates of a channel link to the booking form of the same channel; a channel only with password shows only on a page with a password." }
 fields:
   title: { type: headline, label: Heading, optional: true, maxLength: 100, placeholder: "Booking" }
   note: { type: richtext, label: Note above the button, optional: true }
@@ -24,6 +26,8 @@ fields:
   {% if flash and flash.message %}<p class="events-flash{% if flash.success %} events-flash--success{% endif %}" role="{{ flash.success ? 'status' : 'alert' }}">{{ flash.message }}</p>{% endif %}
   {% if state == 'none' %}
     {% if editing %}<p class="events-hint">{{ t('No provider of courses is connected yet.') }}</p>{% endif %}
+  {% elseif state == 'restricted' %}
+    {% if editing %}<p class="events-hint">{{ t('This channel shows only on a page with a password.') }}</p>{% endif %}
   {% elseif state == 'choose' %}
     <p class="events-hint">{{ t('Please choose a date of a course first.') }}</p>
   {% elseif state == 'missing' %}

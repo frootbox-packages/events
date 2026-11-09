@@ -15,6 +15,7 @@ use Frootbox\Core\Application;
 use Frootbox\Core\Extension\Registry;
 use Frootbox\Core\Http\MiddlewareDispatcher;
 use Frootbox\Core\Page\PageHandler;
+use Frootbox\Core\Page\PagePasswords;
 use Frootbox\Core\Page\PublishPages;
 use Frootbox\Core\Visitor\VisitorSession;
 use Frootbox\Events\Courses\Provider\CourseProviderEntry;
@@ -30,11 +31,15 @@ abstract class CoursesTestCase extends EventsTestCase
 {
     protected ?string $cookie = null;
 
+    /** @var array<string, string> cookies of pages with a password the browser knows */
+    protected array $passwords = [];
+
     protected function setUp(): void
     {
         FakeCourses::reset();
         parent::setUp();
         $this->cookie = null;
+        $this->passwords = [];
     }
 
     protected function register(Registry $registry): void
@@ -66,7 +71,7 @@ abstract class CoursesTestCase extends EventsTestCase
         $headers += null === $post ? [] : ['Origin' => 'https://example.org'];
         $request = new ServerRequest(null === $post ? 'GET' : 'POST', 'https://example.org' . $path, $headers);
         parse_str((string) parse_url($path, \PHP_URL_QUERY), $query);
-        $request = $request->withQueryParams($query)->withCookieParams(null === $this->cookie ? [] : [VisitorSession::COOKIE => $this->cookie]);
+        $request = $request->withQueryParams($query)->withCookieParams($this->passwords + (null === $this->cookie ? [] : [VisitorSession::COOKIE => $this->cookie]));
 
         if (null !== $post) {
             $request = $request->withParsedBody($post);
@@ -81,10 +86,20 @@ abstract class CoursesTestCase extends EventsTestCase
         foreach ($response->getHeader('Set-Cookie') as $header) {
             if (1 === preg_match('/^fb_visitor=([0-9a-f]*);/', $header, $match)) {
                 $this->cookie = '' === $match[1] ? null : $match[1];
+            } elseif (1 === preg_match('/^(frootbox_page_[^=]+)=([^;]+);/', $header, $match)) {
+                $this->passwords[$match[1]] = rawurldecode($match[2]);
             }
         }
 
         return $response;
+    }
+
+    /**
+     * Enters the password of a page in the browser of the visitor.
+     */
+    protected function unlock(string $path, string $password): void
+    {
+        $this->browse($path, [PagePasswords::FIELD => $password]);
     }
 
     protected function visit(string $path): string

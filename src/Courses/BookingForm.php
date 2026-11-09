@@ -113,6 +113,13 @@ final readonly class BookingForm implements RequestHandlerInterface
             $input['message'] = $body['message'];
         }
 
+        // A further channel and, for a restricted one, the access of its page (decision 0360).
+        foreach (['channel', 'access'] as $name) {
+            if (\is_string($body[$name] ?? null) && '' !== $body[$name]) {
+                $input[$name] = $body[$name];
+            }
+        }
+
         return $input;
     }
 

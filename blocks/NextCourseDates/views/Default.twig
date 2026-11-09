@@ -6,6 +6,7 @@ keywords: [Courses, Dates, Booking, Seats, Next, Upcoming]
 options:
   courses: { type: choice, multiple: true, label: Courses, source: frootbox/events/course.choices }
   count: { type: number, label: Number of dates, default: 4, min: 1, max: 12 }
+  channel: { type: choice, label: Channel, source: frootbox/events/channel.choices, default: '', description: "Which channel of the provider of courses. A channel only with password shows only on a page with a password." }
 fields:
   title: { type: headline, label: Heading, optional: true, maxLength: 100, placeholder: "Courses soon" }
 #}
@@ -13,6 +14,8 @@ fields:
   {{ heading('title', 0, {class: 'events-soon__title'}) }}
   {% if state == 'none' %}
     {% if editing %}<p class="events-hint">{{ t('No provider of courses is connected yet.') }}</p>{% endif %}
+  {% elseif state == 'restricted' %}
+    {% if editing %}<p class="events-hint">{{ t('This channel shows only on a page with a password.') }}</p>{% endif %}
   {% elseif state == 'error' %}
     <p class="events-hint">{{ t('The dates cannot be loaded right now.') }}</p>
   {% elseif dates %}

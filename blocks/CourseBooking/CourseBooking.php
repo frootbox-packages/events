@@ -17,6 +17,7 @@ use Frootbox\Core\View\Delivery;
 use Frootbox\Database\EntityNotFoundException;
 use Frootbox\Events\Courses\BookingForm;
 use Frootbox\Events\Courses\BookingSession;
+use Frootbox\Events\Courses\ChannelAccess;
 use Frootbox\Events\Courses\CourseRendering;
 use Frootbox\Events\Courses\Courses;
 use Frootbox\Events\Courses\Provider\Detail;
@@ -29,6 +30,7 @@ use Frootbox\Events\Courses\Provider\LegalText;
  * price and free seats, the number of attendees (a form of its own, so
  * fields and total fit), the person who books, the attendees, the fields
  * of the date, the legal texts and the button. Never in the page cache.
+ * A further channel as in CourseDates (decision 0360).
  */
 final readonly class CourseBooking implements BlockController
 {
@@ -37,6 +39,7 @@ final readonly class CourseBooking implements BlockController
     public function __construct(
         private Courses $courses,
         private CourseRendering $rendering,
+        private ChannelAccess $access,
         private BookingSession $session,
         private Urls $urls,
         private Delivery $delivery,
@@ -48,16 +51,21 @@ final readonly class CourseBooking implements BlockController
         $this->delivery->withoutCache();
         $flash = $this->session->takeFlash();
         $id = $context->query('date') ?? '';
+        $chosen = \is_string($context->options['channel'] ?? null) ? $context->options['channel'] : '';
         $base = ['editing' => $this->editMode->active(), 'flash' => $flash];
 
         if (!$this->courses->connected()) {
             return ['state' => 'none', ...$base];
         }
 
+        if (!$this->access->shows($chosen, $context->target)) {
+            return ['state' => 'restricted', ...$base];
+        }
+
         // After the booking the date stays below the thanks, so the person sees what they booked.
         if (true === ($flash['success'] ?? false)) {
             try {
-                $done = '' === $id ? null : $this->rendering->date($this->courses->date(self::ACTION, $id), $context->language, false);
+                $done = '' === $id ? null : $this->rendering->date($this->courses->date(self::ACTION, $id, $chosen), $context->language, false);
             } catch (ActionException|EntityNotFoundException) {
                 $done = null;
             }
@@ -70,8 +78,8 @@ final readonly class CourseBooking implements BlockController
         }
 
         try {
-            $channel = $this->courses->channel(self::ACTION);
-            $date = $this->courses->date(self::ACTION, $id);
+            $channel = $this->courses->channel(self::ACTION, $chosen);
+            $date = $this->courses->date(self::ACTION, $id, $chosen);
         } catch (EntityNotFoundException) {
             return ['state' => 'missing', ...$base];
         } catch (ActionException $error) {
@@ -97,7 +105,16 @@ final readonly class CourseBooking implements BlockController
             ...$base,
             'date' => $shown,
             'page' => $page,
-            'hidden' => ['_return' => $here, '_language' => $context->language, 'date' => $date->id, 'key' => self::key($values, $date->id), 'expectedGross' => (string) $date->totalGross($count)],
+            'hidden' => [
+                '_return' => $here,
+                '_language' => $context->language,
+                'date' => $date->id,
+                'key' => self::key($values, $date->id),
+                'expectedGross' => (string) $date->totalGross($count),
+                // A further channel and, for a restricted one, the access of this page (decision 0360).
+                ...('' === $chosen ? [] : ['channel' => $chosen]),
+                ...array_filter(['access' => $this->access->issue($chosen, $context->target)], static fn(?string $access): bool => null !== $access),
+            ],
             'trap' => BookingForm::TRAP,
             'count' => $count,
             'counts' => $max > 1 ? range(1, $max) : [],

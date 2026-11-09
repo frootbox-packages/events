@@ -9,6 +9,8 @@ declare(strict_types=1);
 namespace Frootbox\Events\Courses;
 
 use Frootbox\Core\Extension\Registry;
+use Frootbox\Events\Courses\Provider\ChannelChoice;
+use Frootbox\Events\Courses\Provider\ChannelSource;
 use Frootbox\Events\Courses\Provider\CourseProvider;
 use Frootbox\Events\Courses\Provider\CourseProviderEntry;
 use Frootbox\Events\EventsSettings;
@@ -17,6 +19,7 @@ use Psr\Container\ContainerInterface;
 /**
  * The providers of courses extensions registered and the active one
  * (decision 0351): the one of the setting "provider", or the only one.
+ * Its further channels come from ChannelSource (decision 0360).
  */
 final readonly class Providers
 {
@@ -34,7 +37,34 @@ final readonly class Providers
         return $this->registry->items(CourseProviderEntry::class);
     }
 
-    public function active(): ?CourseProvider
+    /**
+     * The active provider, or one of its channels; null without a
+     * provider or for an unknown channel.
+     */
+    public function active(string $channel = ''): ?CourseProvider
+    {
+        $provider = $this->provider();
+
+        if ('' === $channel || null === $provider) {
+            return $provider;
+        }
+
+        return $provider instanceof ChannelSource ? $provider->in($channel) : null;
+    }
+
+    /**
+     * The further channels of the active provider.
+     *
+     * @return list<ChannelChoice>
+     */
+    public function channels(): array
+    {
+        $provider = $this->provider();
+
+        return $provider instanceof ChannelSource ? $provider->channels() : [];
+    }
+
+    private function provider(): ?CourseProvider
     {
         $entries = $this->entries();
         $entry = '' === $this->settings->provider

@@ -20,7 +20,9 @@ use Frootbox\Events\Backend\EventsHandler;
 use Frootbox\Events\Calendar\Calendar;
 use Frootbox\Events\Calendar\CalendarHandler;
 use Frootbox\Events\Courses\BookingForm;
+use Frootbox\Events\Courses\ChannelChoices;
 use Frootbox\Events\Courses\CourseChoices;
+use Frootbox\Events\Courses\ListAttendees;
 use Frootbox\Events\Courses\ListCourses;
 use Frootbox\Events\Courses\ListDates;
 use Frootbox\Events\Courses\PlaceBooking;
@@ -65,6 +67,8 @@ final class EventsExtension implements Extension
         $registry->query(CourseChoices::class);
         $registry->query(ListDates::class);
         $registry->query(ShowDate::class);
+        $registry->query(ChannelChoices::class);
+        $registry->query(ListAttendees::class);
         $registry->action(PlaceBooking::class);
         $registry->post(BookingForm::ROUTE, BookingForm::class, 'frootbox.events.booking');
 

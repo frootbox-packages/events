@@ -16,6 +16,7 @@ use Frootbox\Core\Action\InvalidInputException;
 use Frootbox\Core\Action\Schema\Description;
 use Frootbox\Core\Action\Schema\Length;
 use Frootbox\Core\Action\Schema\ListOf;
+use Frootbox\Core\Action\Schema\Sensitive;
 use Frootbox\Core\Support\Message;
 use Frootbox\Events\Courses\Provider\Attendee;
 use Frootbox\Events\Courses\Provider\Booker;
@@ -70,13 +71,21 @@ final readonly class PlaceBooking implements Action
         #[Description('Keys of the legal texts the person agreed to')]
         #[ListOf('string')]
         public array $consents = [],
+        #[Description('A further channel of the provider, empty for its own')]
+        #[Length(max: 100)]
+        public string $channel = '',
+        #[Description('The access a page with a password hands out for a restricted channel')]
+        #[Length(max: 1000)]
+        #[Sensitive]
+        public ?string $access = null,
     ) {}
 
-    public function handle(Courses $courses, BookingSession $session): BookingConfirmation
+    public function handle(Courses $courses, BookingSession $session, ChannelAccess $access): BookingConfirmation
     {
         $session->require();
-        $channel = $courses->channel(self::NAME);
-        $date = $courses->date(self::NAME, $this->date);
+        $access->check($this->channel, $this->access);
+        $channel = $courses->channel(self::NAME, $this->channel);
+        $date = $courses->date(self::NAME, $this->date, $this->channel);
         $errors = [];
         $booker = $this->booker($channel, $errors);
         $attendees = $this->attendees($channel, $date, $booker, $errors);
@@ -101,7 +110,7 @@ final readonly class PlaceBooking implements Action
 
         $message = null === $this->message || '' === trim($this->message) ? null : trim($this->message);
 
-        return $courses->book(self::NAME, new BookingRequest($date->id, $booker, $attendees, $this->expectedGross, $fields, $message, $consents), $this->key);
+        return $courses->book(self::NAME, new BookingRequest($date->id, $booker, $attendees, $this->expectedGross, $fields, $message, $consents), $this->key, $this->channel);
     }
 
     /**

@@ -233,7 +233,7 @@ final class CoursesTest extends CoursesTestCase
         self::assertSame(['10', '12'], array_map(static fn($date): string => $date->id, $dates));
 
         $choices = $this->runner()->ask(new CourseChoices());
-        self::assertSame(['', '2'], array_column($choices, 'value'));
+        self::assertSame(['', '2', '7'], array_column($choices, 'value'), 'Also the courses of the channel.');
         self::assertSame('Erste Hilfe – Grundkurs', $choices[1]['label']);
     }
 

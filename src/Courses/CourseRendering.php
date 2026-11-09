@@ -14,6 +14,7 @@ use DateTimeZone;
 use Frootbox\Core\Url\BasePages;
 use Frootbox\Core\Url\Target;
 use Frootbox\Core\Url\Urls;
+use Frootbox\Events\Courses\Provider\BookedAttendee;
 use Frootbox\Events\Courses\Provider\Course;
 use Frootbox\Events\Courses\Provider\CourseDate;
 use IntlDateFormatter;
@@ -22,7 +23,7 @@ use NumberFormatter;
 /**
  * Courses and their dates for the views (decision 0351): times in the
  * time zone of the website, amounts in the language of the page, and the
- * link to the first page with the booking form.
+ * link to the first page with the booking form of the same channel.
  */
 final readonly class CourseRendering
 {
@@ -39,9 +40,10 @@ final readonly class CourseRendering
     /**
      * The address of the booking form for a date, null without such a page.
      */
-    public function bookingHref(string $date, string $language): ?string
+    public function bookingHref(string $date, string $language, string $channel = ''): ?string
     {
-        $page = $this->pages->of([self::BOOKING_BLOCK])[$language] ?? null;
+        // The booking form of the same channel (decision 0360).
+        $page = $this->pages->of([self::BOOKING_BLOCK], static fn(array $block): bool => self::channelOf($block) === $channel)[$language] ?? null;
         $href = null === $page ? null : $this->urls->href(Target::page($page), $language);
 
         return null === $href ? null : $href . '?' . http_build_query(['date' => $date]);
@@ -65,7 +67,7 @@ final readonly class CourseRendering
     /**
      * @return array<string, mixed>
      */
-    public function date(CourseDate $date, string $language, bool $link = true): array
+    public function date(CourseDate $date, string $language, bool $link = true, string $channel = ''): array
     {
         $start = self::local($date->startsAt);
         $end = self::local($date->endsAt);
@@ -100,8 +102,36 @@ final readonly class CourseRendering
             'seats' => $date->seats->free,
             'state' => $date->state->value,
             'bookable' => $bookable,
-            'url' => $bookable && $link ? $this->bookingHref($date->id, $language) : null,
+            'url' => $bookable && $link ? $this->bookingHref($date->id, $language, $channel) : null,
         ];
+    }
+
+    /**
+     * Someone booked, for the list below a date (decision 0359).
+     *
+     * @return array{name: string, booked: string|null, bookedAt: string|null}
+     */
+    public function attendee(BookedAttendee $attendee, string $language): array
+    {
+        $booked = null === $attendee->bookedAt ? null : self::local($attendee->bookedAt);
+
+        return [
+            'name' => $attendee->name(),
+            'booked' => null === $booked ? null : self::format($booked, $language, IntlDateFormatter::MEDIUM, IntlDateFormatter::SHORT),
+            'bookedAt' => $booked?->format(DateTimeInterface::ATOM),
+        ];
+    }
+
+    /**
+     * The channel a block in a content is set to, empty for the provider's own.
+     *
+     * @param array<mixed> $block
+     */
+    public static function channelOf(array $block): string
+    {
+        $channel = \is_array($block['options'] ?? null) ? ($block['options']['channel'] ?? '') : '';
+
+        return \is_string($channel) ? $channel : '';
     }
 
     public static function money(int $cents, string $currency, string $language): string

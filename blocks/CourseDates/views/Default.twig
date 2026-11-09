@@ -5,6 +5,8 @@ group: list
 keywords: [Courses, Dates, Booking, Seats, Training]
 options:
   course: { type: choice, label: Course, source: frootbox/events/course.choices, default: '' }
+  channel: { type: choice, label: Channel, source: frootbox/events/channel.choices, default: '', description: "Which channel of the provider of courses. A channel only with password shows only on a page with a password." }
+  attendees: { type: boolean, label: Names of the attendees, default: false, description: "Shows who is booked below each date, only on a page with a password." }
   facts: { type: boolean, label: Price and attendees, default: true }
   count: { type: number, label: Number of dates, default: 6, min: 1, max: 20 }
 fields:
@@ -20,6 +22,8 @@ fields:
   <div class="events-course__text">{{ field('text') }}</div>
   {% if state == 'none' %}
     {% if editing %}<p class="events-hint">{{ t('No provider of courses is connected yet.') }}</p>{% endif %}
+  {% elseif state == 'restricted' %}
+    {% if editing %}<p class="events-hint">{{ t('This channel shows only on a page with a password.') }}</p>{% endif %}
   {% elseif state == 'error' %}
     <p class="events-hint">{{ t('The dates cannot be loaded right now.') }}</p>
   {% elseif facts and course %}
@@ -34,6 +38,11 @@ fields:
   <div class="events-course__note">{{ field('note') }}</div>
   {% if state == 'ready' %}
     {{ heading('datesTitle', 1, {class: 'events-course__dates-title'}) }}
+    {% if attendeesHint == 'error' %}
+      <p class="events-hint">{{ t('The names of the attendees cannot be loaded right now.') }}</p>
+    {% elseif attendeesHint and editing %}
+      <p class="events-hint">{{ attendeesHint == 'password' ? t('The names of the attendees show only on a page with a password.') : t('The provider of courses gives no names of attendees.') }}</p>
+    {% endif %}
     {% if dates %}
       <ul class="events-dates">
         {% for date in dates %}
@@ -52,6 +61,18 @@ fields:
                 <span class="events-date__full">{{ t('Booking closed') }}</span>
               {% endif %}
             </p>
+            {% if date.attendees is not null %}
+              <div class="events-date__attendees">
+                <p class="events-date__attendees-title">{{ date.attendees|length == 1 ? t('1 booked') : t('{count} booked', {count: date.attendees|length}) }}</p>
+                {% if date.attendees %}
+                  <ul>
+                    {% for attendee in date.attendees %}
+                      <li>{{ attendee.name }}{% if attendee.booked %} <span class="events-date__booked">({{ t('booked {time}', {time: attendee.booked}) }})</span>{% endif %}</li>
+                    {% endfor %}
+                  </ul>
+                {% endif %}
+              </div>
+            {% endif %}
           </li>
         {% endfor %}
       </ul>

@@ -14,6 +14,7 @@ use Frootbox\Core\Action\Query;
 use Frootbox\Core\Action\Schema\Description;
 use Frootbox\Core\Action\Schema\Length;
 use Frootbox\Core\Action\Schema\Range;
+use Frootbox\Core\Action\Schema\Sensitive;
 use Frootbox\Events\Courses\Provider\CourseDate;
 use Frootbox\Events\Courses\Provider\DateQuery;
 
@@ -33,13 +34,22 @@ final readonly class ListDates implements Query
         public bool $available = true,
         #[Range(min: 1, max: 100)]
         public int $limit = 20,
+        #[Description('A further channel of the provider, empty for its own')]
+        #[Length(max: 100)]
+        public string $channel = '',
+        #[Description('The access a page with a password hands out for a restricted channel')]
+        #[Length(max: 1000)]
+        #[Sensitive]
+        public ?string $access = null,
     ) {}
 
     /**
      * @return list<CourseDate>
      */
-    public function handle(Courses $courses): array
+    public function handle(Courses $courses, ChannelAccess $access): array
     {
-        return $courses->dates('frootbox/events/date.list', new DateQuery('' === $this->course ? null : $this->course, $this->from, $this->available, $this->limit));
+        $access->check($this->channel, $this->access);
+
+        return $courses->dates('frootbox/events/date.list', new DateQuery('' === $this->course ? null : $this->course, $this->from, $this->available, $this->limit), $this->channel);
     }
 }
